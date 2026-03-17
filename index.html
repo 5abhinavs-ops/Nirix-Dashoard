@@ -346,6 +346,12 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     function badge(text,bg){return `<span style="background:${bg};color:#FFFFFF;border-radius:3px;padding:1px 5px;font-size:10px;display:inline-block">${text}</span>`;}
     function prevMonth(){currentMonth--;if(currentMonth<0){currentMonth=11;currentYear--;}renderGrid();}
     function nextMonth(){currentMonth++;if(currentMonth>11){currentMonth=0;currentYear++;}renderGrid();}
+    function sHead(t,first){return `<div style="font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase;margin:${first?'0':'12px 0 7px'};padding-top:${first?'0':'10px'};border-top:${first?'none':'0.5px solid #1A2F4A'}">${t}</div>`;}
+    function pRow(label,val,col,isCrit){return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #0D1628"><span style="font-size:11px;color:#8AA8C0">${label}</span><span style="font-size:11px;font-weight:${col?'500':'400'};color:${col||(isCrit?'#C84040':'#FFFFFF')}">${val}</span></div>`;}
+    function switchDailyView(view,el){activeView=view;document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('v-daily').style.display=view==='daily'?'block':'none';document.getElementById('v-monthly').style.display=view==='monthly'?'block':'none';document.getElementById('left-rail').style.display=view==='monthly'?'flex':'none';if(view==='monthly')renderMonthly();else renderDaily();}
+    function switchRunhrsView(view,el){activeRunhrs=view;document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('v-fleet').style.display=view==='fleet'?'block':'none';document.getElementById('v-runhrs').style.display=view==='runhrs'?'block':'none';document.getElementById('v-specs').style.display=view==='specs'?'block':'none';renderAll();}
+    function closeModal(){document.getElementById('modalOverlay').style.display='none';}
+    function downloadPDF(){alert('PDF download not yet implemented.');}
 
     // ── MODAL ──
     function openModal(boat,dateStr){
