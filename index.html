@@ -791,7 +791,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
     function bsToggle(key){if(key==='sg')bsOpenSG=!bsOpenSG;else bsOpenSC=!bsOpenSC;renderBoatSpecs();}
     function bsSelect(b){bsSelected=b;renderBoatSpecs();}
-    function bsR(label,val){const e=!val||val===''||val.toLowerCase()==='na';return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #1A2F4A"><span style="font-size:11px;color:#8AA8C0">${label}</span><span style="font-size:11px;font-weight:500;color:${e?'#3A4A60':'#FFFFFF'};text-align:right;max-width:55%">${e?'\u2014':val}</span></div>`;}
+    function bsR(label,val){const e=!val||val===''||val.toLowerCase()==='na';return `<div style="display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:0.5px solid #1A2F4A"><span style="font-size:11px;color:#8AA8C0;white-space:nowrap">${label}</span><span style="font-size:11px;font-weight:500;color:${e?'#3A4A60':'#FFFFFF'}">${e?'\u2014':val}</span></div>`;}
     function bsSec(t){return `<div style="font-size:9px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#5A7A8A;padding-bottom:6px;border-bottom:0.5px solid #1A2F4A;margin-bottom:8px;margin-top:18px">${t}</div>`;}
     function bsHull(h){if(!h)return '';const bg=h==='Aluminium'?'#0D2A10':h==='Wood'?'#2A1A05':'#071828';const bc=h==='Aluminium'?'#1A6A2A':h==='Wood'?'#6A4A0A':'#1A4A6A';return `<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:500;background:${bg};border:0.5px solid ${bc};color:#FFFFFF;margin-left:8px">${h}</span>`;}
     function bsDetailHTML(name){
@@ -799,7 +799,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       let h=`<div style="font-size:17px;font-weight:500;color:#FFFFFF;margin-bottom:3px">${name}${bsHull(b['Hull'])}</div>`;
       h+=`<div style="font-size:11px;color:#8AA8C0;margin-bottom:20px">${b['company']} &nbsp;&middot;&nbsp; ${b['SC Number']} &nbsp;&middot;&nbsp; MMSI ${b['MMSI Number']}</div>`;
       h+=bsSec('Dimensions &amp; registration');
-      h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px"><div>${bsR('Breadth',b['Breadth']?b['Breadth']+' m':'')}${bsR('Depth',b['Depth']?b['Depth']+' m':'')}${bsR('Class',b['Class'])}${bsR('Flag',b['Flag'])}</div><div>${bsR('Pax capacity',b['Passenger Capacity'])}${bsR('Crew',b['Crew Capacity'])}${bsR('Mooring buoy',b['Mooring Buoy'])}</div></div>`;
+      h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px"><div>${bsR('LOA',b['LOA']?b['LOA']+' m':'')}${bsR('Breadth',b['Breadth']?b['Breadth']+' m':'')}${bsR('Depth',b['Depth']?b['Depth']+' m':'')}${bsR('Class',b['Class'])}${bsR('Flag',b['Flag'])}</div><div>${bsR('Pax capacity',b['Passenger Capacity'])}${bsR('Crew',b['Crew Capacity'])}${bsR('Mooring buoy',b['Mooring Buoy'])}</div></div>`;
       h+=bsSec('Navigation equipment');
       h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px"><div>${bsR('AIS',b['AIS'])}</div><div>${bsR('GPS',b['GPS'])}</div></div>`;
       h+=bsSec('Main engine');
@@ -900,18 +900,17 @@ select option { background:#0D1F3C;color:#FFFFFF; }
         <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('monthly',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Monthly view</div>
       </div>
     </div>
-    <div id="tab-boatspecs" onclick="switchModule('boatspecs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1A6A3A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
-      <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Boat Tech. Specs</div>
-      <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="btab on" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0;color:#FFFFFF;font-weight:500;background:#0D2A1A;border-bottom:2px solid #1A9A5A">All vessels</div>
-      </div>
-    </div>
     <div id="tab-runhrs" onclick="switchModule('runhrs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #0D8A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
       <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Engine Run-hrs Records</div>
       <div style="display:flex;gap:2px;margin-top:3px">
         <div class="stab on" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('fleet',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Fleet monthly overview</div>
         <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('runhrs',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Monthly running hours</div>
-
+      </div>
+    </div>
+    <div id="tab-boatspecs" onclick="switchModule('boatspecs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1A6A3A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
+      <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Boat Tech. Specs</div>
+      <div style="display:flex;gap:2px;margin-top:3px">
+        <div class="btab on" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0;color:#FFFFFF;font-weight:500;background:#0D2A1A;border-bottom:2px solid #1A9A5A">All vessels</div>
       </div>
     </div>
   </div>
