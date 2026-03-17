@@ -55,11 +55,37 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       'Bunkered','Quantity bunkered (L)'
     ];
     const PARAM_KEY = {
-      'Submitted by':'Engineer','Port oil level':'Port Oil Level','Port oil temp (°C)':'Port Oil Temp C',
-      'Port coolant (°C)':'Port Coolant Temp C','Port run hours':'Port Running Hours',
-      'Stbd oil level':'Stbd Oil Level','Stbd oil temp (°C)':'Stbd Oil Temp C',
-      'Stbd coolant (°C)':'Stbd Coolant Temp C','Stbd run hours':'Stbd Running Hours',
-      'Bilge':'Bilge Status','Fuel level':'FO Port Level (L)'
+      'Submitted by':               'Engineer',
+      'Port run hours':             'Port Running Hours',
+      'Port oil level':             'Port Oil Level',
+      'Port oil pressure (bar)':    'Port Oil Pressure Bar',
+      'Port oil temp (°C)':         'Port Oil Temp C',
+      'Port oil temp status':       'Port Oil Temp Status',
+      'Port coolant level':         'Port Coolant Level',
+      'Port coolant temp (°C)':     'Port Coolant Temp C',
+      'Port smoke':                 'Port Smoke',
+      'Port LO leak':               'Port LO Leak',
+      'Port FO leak':               'Port FO Leak',
+      'Port gearbox oil':           'Port Gearbox Oil',
+      'Port battery (V)':           'Port Battery V',
+      'Stbd run hours':             'Stbd Running Hours',
+      'Stbd oil level':             'Stbd Oil Level',
+      'Stbd oil pressure (bar)':    'Stbd Oil Pressure Bar',
+      'Stbd oil temp (°C)':         'Stbd Oil Temp C',
+      'Stbd oil temp status':       'Stbd Oil Temp Status',
+      'Stbd coolant level':         'Stbd Coolant Level',
+      'Stbd coolant temp (°C)':     'Stbd Coolant Temp C',
+      'Stbd smoke':                 'Stbd Smoke',
+      'Stbd LO leak':               'Stbd LO Leak',
+      'Stbd FO leak':               'Stbd FO Leak',
+      'Stbd gearbox oil':           'Stbd Gearbox Oil',
+      'Stbd battery (V)':           'Stbd Battery V',
+      'Bilge status':               'Bilge Status',
+      'Bilge pump':                 'Bilge Pump',
+      'FO port tank (L)':           'FO Port Level (L)',
+      'FO stbd tank (L)':           'FO Stbd Level (L)',
+      'Bunkered':                   'Bunkered',
+      'Quantity bunkered (L)':      'Quantity Bunkered'
     };
 
     let activeModule='daily', activeView='daily', activeRunhrs='fleet';
@@ -428,6 +454,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 
 
+
     // ── FLEET MONTHLY OVERVIEW ──
     function renderFleet(){
       const container=document.getElementById('v-fleet');
@@ -538,6 +565,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
     function switchFleetCompany(name){fleetCompany=name;fleetOlderShown=false;renderFleet();}
     function toggleFleetOlder(){fleetOlderShown=!fleetOlderShown;renderFleet();}
+
 
 
 
