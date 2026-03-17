@@ -424,6 +424,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 
 
+
     // ── FLEET MONTHLY OVERVIEW ──
     function renderFleet(){
       const container=document.getElementById('v-fleet');
@@ -534,6 +535,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
     function switchFleetCompany(name){fleetCompany=name;fleetOlderShown=false;renderFleet();}
     function toggleFleetOlder(){fleetOlderShown=!fleetOlderShown;renderFleet();}
+
 
 
 
@@ -765,7 +767,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       <div style="display:flex;gap:2px;margin-top:3px">
         <div class="stab on" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('fleet',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Fleet monthly overview</div>
         <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('runhrs',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Monthly running hours</div>
-        <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('specs',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Engine specs</div>
+        <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('specs',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Boat tech. specs</div>
       </div>
     </div>
   </div>
