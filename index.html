@@ -44,7 +44,16 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const WEEKDAYS    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const PARAMS = ['Submitted by','Port oil level','Port oil temp (°C)','Port coolant (°C)','Port run hours','Stbd oil level','Stbd oil temp (°C)','Stbd coolant (°C)','Stbd run hours','Bilge','Fuel level'];
+    const PARAMS = [
+      'Submitted by',
+      'Port run hours','Port oil level','Port oil pressure (bar)','Port oil temp (°C)','Port oil temp status',
+      'Port coolant level','Port coolant temp (°C)','Port smoke','Port LO leak','Port FO leak','Port gearbox oil','Port battery (V)',
+      'Stbd run hours','Stbd oil level','Stbd oil pressure (bar)','Stbd oil temp (°C)','Stbd oil temp status',
+      'Stbd coolant level','Stbd coolant temp (°C)','Stbd smoke','Stbd LO leak','Stbd FO leak','Stbd gearbox oil','Stbd battery (V)',
+      'Bilge status','Bilge pump',
+      'FO port tank (L)','FO stbd tank (L)',
+      'Bunkered','Quantity bunkered (L)'
+    ];
     const PARAM_KEY = {
       'Submitted by':'Engineer','Port oil level':'Port Oil Level','Port oil temp (°C)':'Port Oil Temp C',
       'Port coolant (°C)':'Port Coolant Temp C','Port run hours':'Port Running Hours',
@@ -407,6 +416,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 
 
+
     // ── FLEET MONTHLY OVERVIEW ──
     function renderFleet(){
       const container=document.getElementById('v-fleet');
@@ -472,7 +482,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
         </td>`;
         portVals.forEach((v,i)=>{
           const isLatest=i===0;
-          html+=`<td style="text-align:right;padding:5px 14px 4px 12px;border-left:1px solid #1A2F4A;border-top:none;border-bottom:none;background:${isLatest?'#0D2234':rowBg};font-size:13px;font-weight:600;color:${v!==null?'#FFFFFF':'#3A4A60'};white-space:nowrap">${v!==null?Math.round(v).toLocaleString('en-SG'):'—'}</td>`;
+          html+=`<td style="text-align:center;padding:5px 12px 4px 12px;border-left:1px solid #1A2F4A;border-top:none;border-bottom:none;background:${isLatest?'#0D2234':rowBg};font-size:13px;font-weight:600;color:${v!==null?'#FFFFFF':'#3A4A60'};white-space:nowrap">${v!==null?Math.round(v).toLocaleString('en-SG'):'—'}</td>`;
         });
         html+=`<td style="background:#071828;border-left:1px solid #1A2F4A;border-top:none;border-bottom:none"></td>`;
         html+=`</tr>`;
@@ -487,7 +497,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
         </td>`;
         stbdVals.forEach((v,i)=>{
           const isLatest=i===0;
-          html+=`<td style="text-align:right;padding:4px 14px 8px 12px;border-left:1px solid #1A2F4A;border-top:none;border-bottom:${isLast?'none':'1px solid #1A2F4A'};background:${isLatest?'#0D2234':rowBg};font-size:12px;font-weight:500;color:${v!==null?'#7ACFAA':'#3A4A60'};white-space:nowrap">${v!==null?Math.round(v).toLocaleString('en-SG'):'—'}</td>`;
+          html+=`<td style="text-align:center;padding:4px 12px 8px 12px;border-left:1px solid #1A2F4A;border-top:none;border-bottom:${isLast?'none':'1px solid #1A2F4A'};background:${isLatest?'#0D2234':rowBg};font-size:12px;font-weight:500;color:${v!==null?'#7ACFAA':'#3A4A60'};white-space:nowrap">${v!==null?Math.round(v).toLocaleString('en-SG'):'—'}</td>`;
         });
         html+=`<td style="background:#071828;border-left:1px solid #1A2F4A;border-top:none;border-bottom:${isLast?'none':'1px solid #1A2F4A'}"></td>`;
         html+=`</tr>`;
@@ -517,6 +527,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
     function switchFleetCompany(name){fleetCompany=name;fleetOlderShown=false;renderFleet();}
     function toggleFleetOlder(){fleetOlderShown=!fleetOlderShown;renderFleet();}
+
 
 
 
@@ -701,19 +712,30 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 <div id="app" style="display:none;flex-direction:column;min-height:100vh;background:#0A1628">
 
-  <div id="header" style="display:flex;align-items:center;padding:9px 18px;background:#0A1628;border-bottom:1px solid #1E3A5F;flex-shrink:0;gap:10px">
-    <div id="logo-sg-group-wrap"></div>
-    <div style="flex:1;text-align:center">
-      <div style="font-size:15px;font-weight:700;color:#FFFFFF;letter-spacing:0.06em;text-transform:uppercase">TECHNICAL DASHBOARD</div>
-      <div style="font-size:9px;color:#8AA8C0;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px">Fleet Engine Reports</div>
+  <div id="header" style="display:flex;align-items:center;padding:10px 18px;background:#0A1628;border-bottom:1px solid #1E3A5F;flex-shrink:0;gap:12px">
+
+    <!-- SG Group logo box -->
+    <div style="display:flex;align-items:center;padding:6px 10px;background:#0D1F3C;border:1.5px solid #2A4A7A;border-radius:8px;box-shadow:0 0 12px rgba(30,80,160,0.3);flex-shrink:0">
+      <div id="logo-sg-group-wrap"></div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-      <div id="logo-nirix-wrap"></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
-        <div style="font-size:10px;color:#8AA8C0;letter-spacing:2px">NIRIX</div>
-        <div id="header-date" style="font-size:10px;color:#8AA8C0"></div>
+
+    <!-- TECHNICAL DASHBOARD centre box -->
+    <div style="flex:1;display:flex;justify-content:center">
+      <div style="display:inline-flex;flex-direction:column;align-items:center;padding:7px 28px;background:#0D1F3C;border:1.5px solid #1E4A7A;border-radius:8px;box-shadow:0 0 14px rgba(13,80,150,0.25)">
+        <div style="font-size:16px;font-weight:800;color:#FFFFFF;letter-spacing:0.12em;text-transform:uppercase">TECHNICAL DASHBOARD</div>
+        <div style="font-size:9px;color:#8AA8C0;letter-spacing:0.18em;text-transform:uppercase;margin-top:3px">Fleet Engine Reports</div>
       </div>
     </div>
+
+    <!-- Nirix logo + brand box -->
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:#0D1F3C;border:1.5px solid #0D6A7A;border-radius:8px;box-shadow:0 0 12px rgba(13,100,130,0.3);flex-shrink:0">
+      <div id="logo-nirix-wrap"></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
+        <div style="font-size:11px;font-weight:700;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">NIRIX</div>
+        <div id="header-date" style="font-size:9px;color:#8AA8C0;letter-spacing:0.06em"></div>
+      </div>
+    </div>
+
   </div>
 
   <div id="module-nav" style="background:#0D1F3C;border-bottom:1px solid #1E3A5F;padding:0 18px;display:flex;align-items:flex-end;gap:6px;flex-shrink:0">
