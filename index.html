@@ -241,7 +241,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       const cr=st.filter(s=>s.status==='critical').length,ms=st.filter(s=>s.status==='missing').length;
       const isSea=company==='Sea Cabbie';
       const companyTab=`<div style="display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;border:1px solid ${isSea?'#1A3A5A':'#1E2E4A'};background:${isSea?'#071828':'#0D1A2E'};margin-bottom:10px">
-        <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${isSea?'#0D2040':'#1A0D28'};border:1px solid ${isSea?'#2A5080':'#4A2060'}"></div>
+        
         <div><div style="font-size:11px;font-weight:700;color:#FFFFFF;letter-spacing:0.06em;text-transform:uppercase">${company}</div><div style="font-size:9px;color:#8AA8C0;margin-top:1px">12 vessels</div></div></div>`;
       const counts=`<div style="display:flex;gap:5px;margin-bottom:12px">${countBox(ok,'Submitted<br>OK','#071E14','#0D4A2A')}${countBox(al,'Alert','#1E1200','#6A4A00')}${countBox(cr,'Critical','#1E0808','#6A2020')}${countBox(ms,'Not<br>submitted','#0A1220','#1A2A3A')}</div>`;
       const groups=[{key:'critical',label:'Critical alert',dot:'#C84040'},{key:'alert',label:'Alert',dot:'#D4920A'},{key:'ok',label:'Submitted',dot:'#1A9A6A'},{key:'missing',label:'Not submitted',dot:'#3A4A60'}];
@@ -460,6 +460,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 
 
+
     // ── FLEET MONTHLY OVERVIEW ──
     function renderFleet(){
       const container=document.getElementById('v-fleet');
@@ -570,6 +571,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
     function switchFleetCompany(name){fleetCompany=name;fleetOlderShown=false;renderFleet();}
     function toggleFleetOlder(){fleetOlderShown=!fleetOlderShown;renderFleet();}
+
 
 
 
