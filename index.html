@@ -777,7 +777,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     function bsDetailHTML(name){
       const b=BOAT_SPECS[name];if(!b)return '<div style="color:#3A4A60;padding:20px">Select a vessel</div>';
       let h=`<div style="font-size:17px;font-weight:500;color:#FFFFFF;margin-bottom:3px">${name}</div>`;
-      h+=`<div style="font-size:11px;color:#8AA8C0;margin-bottom:20px">${b['company']} &nbsp;&middot;&nbsp; ${b['SC Number']} &nbsp;&middot;&nbsp; MMSI ${b['MMSI Number']}</div>`;
+      h+=`<div style="font-size:11px;color:#8AA8C0;margin-bottom:20px">${b['company']} &nbsp;&middot;&nbsp; ${b['SC Number']} &nbsp;&middot;&nbsp; MMSI ${b['MMSI Number']}${b['Year Built']?' &nbsp;&middot;&nbsp; Built '+b['Year Built']:''}</div>`;
       h+=bsSec('Dimensions &amp; registration');
       h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px"><div>${bsR('LOA',b['LOA']?b['LOA']+' m':'')}${bsR('Breadth',b['Breadth']?b['Breadth']+' m':'')}${bsR('Depth',b['Depth']?b['Depth']+' m':'')}${bsR('Hull material',b['Hull'])}${bsR('Class',b['Class'])}${bsR('Flag',b['Flag'])}</div><div>${bsR('Pax capacity',b['Passenger Capacity'])}${bsR('Crew',b['Crew Capacity'])}${bsR('Mooring buoy',b['Mooring Buoy'])}</div></div>`;
       h+=bsSec('Navigation equipment');
