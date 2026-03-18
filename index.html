@@ -953,6 +953,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       if(mod==='daily')renderAll();
       else if(mod==='runhrs'){if(activeRunhrs==='fleet')renderFleet();else if(activeRunhrs==='runhrs')renderRunhrs();else renderSpecs();}
       else if(mod==='boatspecs')renderBoatSpecs();
+      else if(mod==='certs'){if(!certActiveBoat)certSelectCompany('compliance');}
     }
 
     window.addEventListener('DOMContentLoaded',()=>{
@@ -1250,14 +1251,6 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       document.getElementById('certDocOverlay').style.display='none';
     }
 
-    // Auto-show compliance overview when the cert module is first opened
-    const _origSwitchModule=switchModule;
-    function switchModule(mod){
-      _origSwitchModule(mod);
-      if(mod==='certs' && !certActiveBoat){
-        certSelectCompany('compliance');
-      }
-    }
   </script>
 </head>
 <body>
@@ -1328,6 +1321,9 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     </div>
     <div id="tab-certs" onclick="switchModule('certs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #2A6A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
       <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Certification</div>
+      <div style="display:flex;gap:2px;margin-top:3px">
+        <div style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0;color:#5AB8E8;font-weight:500;background:#081828;border-bottom:2px solid #3A8FBF">Certificate Registry</div>
+      </div>
     </div>
   </div>
 
