@@ -1101,7 +1101,38 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     const ALL_BOATS=Object.keys(CERT_DATA);
     function allCerts(data){return [...data.class,...data.hcl,...data.radio,...data.insurance];}
 
+    const SC_BOATS=['SG Ekam','SG Naav','SG Dve','SG Trinee','SG Chatur','SG Panch','SG Sapta','SG Ashta','Vayu 1','Vayu 2','SG Rhine','KM Golf'];
+    const SGS_BOATS=['SG Galaxy','SG Brave','SG Fortune','SG Justice','SG Patience','SG Loyalty','SG Generous','SG Integrity','SG Dhalia','SG Sunflower','SG Jasmine','SG Marigold'];
+
+    function certBoatDotColor(boat){
+      const data=CERT_DATA[boat]; if(!data) return '#2AAA6A';
+      let worst=4;
+      allCerts(data).forEach(c=>{
+        const d=certDaysLeft(c.expiry);
+        if(d<0)       worst=Math.min(worst,0);
+        else if(d<10) worst=Math.min(worst,1);
+        else if(d<30) worst=Math.min(worst,2);
+        else if(d<90) worst=Math.min(worst,3);
+      });
+      return ['#950606','#950606','#993D00','#D1FF19','#2AAA6A'][worst];
+    }
+
+    function certBoatItemHTML(boat){
+      const col=certBoatDotColor(boat);
+      const safe=boat.replace(/'/g,"\\'");
+      return `<div onclick="certSelectBoat('${safe}',this)" class="cert-boat-item" style="display:flex;align-items:center;gap:7px">
+        <span style="flex-shrink:0;width:8px;height:8px;border-radius:50%;background:${col};box-shadow:0 0 5px ${col}"></span>
+        ${boat}
+      </div>`;
+    }
+
+    function certInitBoatLists(){
+      document.getElementById('sc-boats').innerHTML =SC_BOATS.map(certBoatItemHTML).join('');
+      document.getElementById('sgs-boats').innerHTML=SGS_BOATS.map(certBoatItemHTML).join('');
+    }
+
     function certSelectCompany(co){
+      if(!document.getElementById('sc-boats').children.length) certInitBoatLists();
       ['clp-tab','sc-tab','sgs-tab'].forEach(id=>{
         const el=document.getElementById(id);
         el.style.borderLeftColor='transparent';
@@ -1372,20 +1403,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
               <span style="font-size:12px;font-weight:600;color:#FFFFFF">Sea Cabbie Certs</span>
               <span id="sc-arrow" style="font-size:10px;color:#6A8AAA">▶</span>
             </div>
-            <div id="sc-boats" style="display:none;padding:2px 0 6px 24px">
-              <div onclick="certSelectBoat('SG Ekam',this)" class="cert-boat-item">SG Ekam</div>
-              <div onclick="certSelectBoat('SG Naav',this)" class="cert-boat-item">SG Naav</div>
-              <div onclick="certSelectBoat('SG Dve',this)" class="cert-boat-item">SG Dve</div>
-              <div onclick="certSelectBoat('SG Trinee',this)" class="cert-boat-item">SG Trinee</div>
-              <div onclick="certSelectBoat('SG Chatur',this)" class="cert-boat-item">SG Chatur</div>
-              <div onclick="certSelectBoat('SG Panch',this)" class="cert-boat-item">SG Panch</div>
-              <div onclick="certSelectBoat('SG Sapta',this)" class="cert-boat-item">SG Sapta</div>
-              <div onclick="certSelectBoat('SG Ashta',this)" class="cert-boat-item">SG Ashta</div>
-              <div onclick="certSelectBoat('Vayu 1',this)" class="cert-boat-item">Vayu 1</div>
-              <div onclick="certSelectBoat('Vayu 2',this)" class="cert-boat-item">Vayu 2</div>
-              <div onclick="certSelectBoat('SG Rhine',this)" class="cert-boat-item">SG Rhine</div>
-              <div onclick="certSelectBoat('KM Golf',this)" class="cert-boat-item">KM Golf</div>
-            </div>
+            <div id="sc-boats" style="display:none;padding:2px 0 6px 24px"></div>
           </div>
           <!-- SG Shipping -->
           <div style="margin-top:4px">
@@ -1395,20 +1413,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
               <span style="font-size:12px;font-weight:600;color:#FFFFFF">SG Shipping Certs</span>
               <span id="sgs-arrow" style="font-size:10px;color:#6A8AAA">▶</span>
             </div>
-            <div id="sgs-boats" style="display:none;padding:2px 0 6px 24px">
-              <div onclick="certSelectBoat('SG Galaxy',this)" class="cert-boat-item">SG Galaxy</div>
-              <div onclick="certSelectBoat('SG Brave',this)" class="cert-boat-item">SG Brave</div>
-              <div onclick="certSelectBoat('SG Fortune',this)" class="cert-boat-item">SG Fortune</div>
-              <div onclick="certSelectBoat('SG Justice',this)" class="cert-boat-item">SG Justice</div>
-              <div onclick="certSelectBoat('SG Patience',this)" class="cert-boat-item">SG Patience</div>
-              <div onclick="certSelectBoat('SG Loyalty',this)" class="cert-boat-item">SG Loyalty</div>
-              <div onclick="certSelectBoat('SG Generous',this)" class="cert-boat-item">SG Generous</div>
-              <div onclick="certSelectBoat('SG Integrity',this)" class="cert-boat-item">SG Integrity</div>
-              <div onclick="certSelectBoat('SG Dhalia',this)" class="cert-boat-item">SG Dhalia</div>
-              <div onclick="certSelectBoat('SG Sunflower',this)" class="cert-boat-item">SG Sunflower</div>
-              <div onclick="certSelectBoat('SG Jasmine',this)" class="cert-boat-item">SG Jasmine</div>
-              <div onclick="certSelectBoat('SG Marigold',this)" class="cert-boat-item">SG Marigold</div>
-            </div>
+            <div id="sgs-boats" style="display:none;padding:2px 0 6px 24px"></div>
           </div>
         </div>
       </div>
