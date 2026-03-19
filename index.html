@@ -1131,23 +1131,34 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         <span>Expiry Date</span><span>Renewal Window</span><span></span>
       </div>`;
     }
-    function certGridRow(name, expiry, boat, cat, win){
+    function certGridRow(name, expiry, boat, cat, windowFrom, windowTo){
       const safe=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       return `<div class="cert-grid-row">
         <span class="cert-name">${name}</span>
         <span class="cert-gap"></span>
         <span class="cert-expiry">${certFmtDate(expiry)}</span>
-        <span class="cert-window">${win||'—'}</span>
+        <span class="cert-window">${certFmtWindow(windowFrom,windowTo)}</span>
         <span class="cert-view-btn"><span onclick="openCertDoc('${safe}','${boat}','${expiry}','${cat}')">View</span></span>
       </div>`;
     }
 
     // ── Editable row (used in boat cert panels) ──────────────
+    function certFmtWindowDate(s){
+      if(!s) return '';
+      return new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    }
+    function certFmtWindow(from,to){
+      const f=certFmtWindowDate(from), t=certFmtWindowDate(to);
+      if(f&&t) return `${f} – ${t}`;
+      if(f) return `From ${f}`;
+      if(t) return `To ${t}`;
+      return '—';
+    }
     function certEditHead(col1='Certificate'){
       return `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #1A2F4A;margin-top:8px">
         <span style="flex:1;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">${col1}</span>
         <span style="width:110px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Expiry Date</span>
-        <span style="width:130px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Renewal Window</span>
+        <span style="width:220px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Renewal Window (From – To)</span>
         <span style="width:60px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase;text-align:right">Doc</span>
         <span style="width:24px;flex-shrink:0"></span>
       </div>`;
@@ -1155,7 +1166,9 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     function certEditRow(name, expiry, boat, cat, tabKey, idx){
       const safe=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       const esc=name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      const win=(CERT_WORKING[boat]?.[tabKey]?.[idx]?.window)||'';
+      const entry=CERT_WORKING[boat]?.[tabKey]?.[idx]||{};
+      const wFrom=entry.windowFrom||'';
+      const wTo=entry.windowTo||'';
       const hasFile=!!certLoadFile(boat,name);
       return `<div class="cert-edit-row">
         <input class="cert-ei" style="flex:1;min-width:0" value="${safe}"
@@ -1163,8 +1176,15 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           placeholder="Certificate name" />
         <input type="date" class="cert-ei cert-ei-date" value="${expiry}"
           onchange="certUpdateField('${esc}','${tabKey}',${idx},'expiry',this.value)" />
-        <input class="cert-ei cert-ei-win" value="${win}" placeholder="dd Mon – dd Mon"
-          onchange="certUpdateField('${esc}','${tabKey}',${idx},'window',this.value)" />
+        <div style="width:220px;flex-shrink:0;display:flex;gap:4px;align-items:center">
+          <input type="date" class="cert-ei cert-ei-date" value="${wFrom}" title="Window start"
+            onchange="certUpdateField('${esc}','${tabKey}',${idx},'windowFrom',this.value)"
+            style="width:104px;flex-shrink:0" />
+          <span style="color:#4A6A8A;font-size:10px;flex-shrink:0">–</span>
+          <input type="date" class="cert-ei cert-ei-date" value="${wTo}" title="Window end"
+            onchange="certUpdateField('${esc}','${tabKey}',${idx},'windowTo',this.value)"
+            style="width:104px;flex-shrink:0" />
+        </div>
         <span class="cert-view-btn" style="flex-shrink:0;width:60px;text-align:right">
           <span onclick="openCertDoc('${safe}','${boat}','${expiry}','${cat}')">${hasFile?'View':'Upload'}</span>
         </span>
@@ -1346,7 +1366,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         </div>
         <div class="ov-cert-list" id="${vid}-list">
           ${certGridHead()}
-          ${certs.map(c=>certGridRow(c.name,c.expiry,boat,band.label)).join('')}
+          ${certs.map(c=>certGridRow(c.name,c.expiry,boat,band.label,c.windowFrom,c.windowTo)).join('')}
         </div>`;
       });
       if(!blocks) blocks=`<div style="color:#4A6A8A;font-size:12px;text-align:center;margin-top:32px">No certificates in this category.</div>`;
