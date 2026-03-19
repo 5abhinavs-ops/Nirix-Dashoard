@@ -52,6 +52,19 @@ button { font-family: inherit; cursor: pointer; }
 .vessel-box.expanded .vtoggle { transform:rotate(90deg); }
 .ov-cert-list { display:none;padding:0 0 8px 0; }
 .ov-cert-list.open { display:block; }
+/* Editable cert row */
+.cert-edit-row { display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:0.5px solid #0D1A2E; }
+.cert-edit-row:last-of-type { border-bottom:none; }
+.cert-edit-row:hover { background:rgba(58,143,191,0.03); }
+.cert-ei { background:transparent;border:none;border-bottom:1px solid transparent;color:#FFFFFF;font-size:12px;font-family:inherit;outline:none;padding:3px 5px;border-radius:4px;box-sizing:border-box;transition:border-color 0.15s,background 0.15s; }
+.cert-ei:hover,.cert-ei:focus { border-bottom-color:#3A8FBF;background:rgba(58,143,191,0.08); }
+.cert-ei-date { color:#FFFFFF;font-size:11px;width:110px;flex-shrink:0;color-scheme:dark; }
+.cert-ei-date::-webkit-calendar-picker-indicator { filter:invert(0.5);cursor:pointer; }
+.cert-ei-win { color:#7A9AB8;font-size:10px;font-style:italic;width:130px;flex-shrink:0; }
+.cert-del-btn { font-size:14px;cursor:pointer;opacity:0.35;transition:opacity 0.15s;flex-shrink:0;padding:2px 4px;border-radius:4px; }
+.cert-del-btn:hover { opacity:1;background:rgba(200,40,40,0.15); }
+.cert-add-btn { display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 16px;background:transparent;border:1px dashed #2A5A7A;border-radius:8px;color:#5AB8E8;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:0.06em;transition:all 0.15s;width:fit-content; }
+.cert-add-btn:hover { background:rgba(58,143,191,0.09);border-color:#3A8FBF; }
 select { background:#0D1F3C;border:1px solid #1E3A5F;border-radius:6px;color:#FFFFFF;font-size:13px;font-weight:600;padding:6px 10px;cursor:pointer;outline:none;font-family:inherit; }
 select:hover { border-color:#0D8A9A; }
 select option { background:#0D1F3C;color:#FFFFFF; }
@@ -1064,25 +1077,102 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     function certFmtDate(s){
       return new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
     }
-    function certViewBtn(name, boat, expiry, cat){
-      const safe=name.replace(/'/g,'\\\'');
-      return `<span class="cert-view-btn"><span onclick="openCertDoc('${safe}','${boat}','${expiry}','${cat}')">View</span></span>`;
+
+    // ── localStorage helpers ─────────────────────────────────
+    let CERT_WORKING = {};
+    function certInitWorking(){
+      Object.keys(CERT_DATA).forEach(boat=>{
+        const saved=localStorage.getItem('certdata_'+boat);
+        try { CERT_WORKING[boat] = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(CERT_DATA[boat])); }
+        catch(e){ CERT_WORKING[boat] = JSON.parse(JSON.stringify(CERT_DATA[boat])); }
+      });
     }
+    function certSaveBoat(boat){
+      localStorage.setItem('certdata_'+boat, JSON.stringify(CERT_WORKING[boat]));
+    }
+    function certFileKey(boat,name){
+      return 'certfile_'+boat.replace(/\s/g,'_')+'_'+name.replace(/[^a-z0-9]/gi,'_');
+    }
+    function certSaveFile(boat,name,dataUrl){
+      try { localStorage.setItem(certFileKey(boat,name),dataUrl); return true; }
+      catch(e){ alert('File too large for browser storage. Try a smaller file (under 4MB).'); return false; }
+    }
+    function certLoadFile(boat,name){ return localStorage.getItem(certFileKey(boat,name)); }
+    function certDeleteFileStored(boat,name){ localStorage.removeItem(certFileKey(boat,name)); }
+
+    // ── Cert data mutations ──────────────────────────────────
+    function certUpdateField(boat,tabKey,idx,field,val){
+      if(!CERT_WORKING[boat]) return;
+      CERT_WORKING[boat][tabKey][idx][field]=val;
+      certSaveBoat(boat);
+    }
+    function certDeleteRow(boat,tabKey,idx){
+      if(!confirm('Delete this certificate entry?')) return;
+      CERT_WORKING[boat][tabKey].splice(idx,1);
+      certSaveBoat(boat);
+      certSwitchTab(certActiveTab);
+    }
+    function certAddRow(boat,tabKey){
+      const today=new Date().toISOString().slice(0,10);
+      CERT_WORKING[boat][tabKey].push({name:'New Certificate',expiry:today,window:''});
+      certSaveBoat(boat);
+      certSwitchTab(certActiveTab);
+      // Focus the last name input
+      setTimeout(()=>{
+        const rows=document.querySelectorAll('.cert-edit-row');
+        if(rows.length){const inp=rows[rows.length-1].querySelector('.cert-ei');if(inp){inp.focus();inp.select();}}
+      },50);
+    }
+
+    // ── Read-only row (used in Compliance Overview) ──────────
     function certGridHead(col1='Certificate'){
       return `<div class="cert-grid-head">
         <span>${col1}</span><span></span>
         <span>Expiry Date</span><span>Renewal Window</span><span></span>
       </div>`;
     }
-    function certGridRow(name, expiry, boat, cat){
-      const days=certDaysLeft(expiry);
+    function certGridRow(name, expiry, boat, cat, win){
+      const safe=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       return `<div class="cert-grid-row">
         <span class="cert-name">${name}</span>
         <span class="cert-gap"></span>
         <span class="cert-expiry">${certFmtDate(expiry)}</span>
-        <span class="cert-window">—</span>
-        ${certViewBtn(name, boat, expiry, cat)}
+        <span class="cert-window">${win||'—'}</span>
+        <span class="cert-view-btn"><span onclick="openCertDoc('${safe}','${boat}','${expiry}','${cat}')">View</span></span>
       </div>`;
+    }
+
+    // ── Editable row (used in boat cert panels) ──────────────
+    function certEditHead(col1='Certificate'){
+      return `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #1A2F4A;margin-top:8px">
+        <span style="flex:1;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">${col1}</span>
+        <span style="width:110px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Expiry Date</span>
+        <span style="width:130px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Renewal Window</span>
+        <span style="width:60px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase;text-align:right">Doc</span>
+        <span style="width:24px;flex-shrink:0"></span>
+      </div>`;
+    }
+    function certEditRow(name, expiry, boat, cat, tabKey, idx){
+      const safe=name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const esc=name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const win=(CERT_WORKING[boat]?.[tabKey]?.[idx]?.window)||'';
+      const hasFile=!!certLoadFile(boat,name);
+      return `<div class="cert-edit-row">
+        <input class="cert-ei" style="flex:1;min-width:0" value="${safe}"
+          onchange="certUpdateField('${esc}','${tabKey}',${idx},'name',this.value)"
+          placeholder="Certificate name" />
+        <input type="date" class="cert-ei cert-ei-date" value="${expiry}"
+          onchange="certUpdateField('${esc}','${tabKey}',${idx},'expiry',this.value)" />
+        <input class="cert-ei cert-ei-win" value="${win}" placeholder="dd Mon – dd Mon"
+          onchange="certUpdateField('${esc}','${tabKey}',${idx},'window',this.value)" />
+        <span class="cert-view-btn" style="flex-shrink:0;width:60px;text-align:right">
+          <span onclick="openCertDoc('${safe}','${boat}','${expiry}','${cat}')">${hasFile?'View':'Upload'}</span>
+        </span>
+        <span class="cert-del-btn" onclick="certDeleteRow('${esc}','${tabKey}',${idx})" title="Delete">🗑</span>
+      </div>`;
+    }
+    function certAddBtn(boat,tabKey){
+      return `<div class="cert-add-btn" onclick="certAddRow('${boat}','${tabKey}')">+ Add Certificate</div>`;
     }
 
     // ── OV_BANDS ────────────────────────────────────────────
@@ -1096,12 +1186,13 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     // all boats in display order
     const ALL_BOATS=Object.keys(CERT_DATA);
     function allCerts(data){return [...data.class,...data.hcl,...data.radio,...data.insurance];}
+    certInitWorking(); // load localStorage overrides
 
     const SC_BOATS=['SG Ekam','SG Naav','SG Dve','SG Trinee','SG Chatur','SG Panch','SG Sapta','SG Ashta','Vayu 1','Vayu 2','SG Rhine','KM Golf'];
     const SGS_BOATS=['SG Galaxy','SG Brave','SG Fortune','SG Justice','SG Patience','SG Loyalty','SG Generous','SG Integrity','SG Dhalia','SG Sunflower','SG Jasmine','SG Marigold'];
 
     function certBoatDotColor(boat){
-      const data=CERT_DATA[boat]; if(!data) return '#2AAA6A';
+      const data=CERT_WORKING[boat]||CERT_DATA[boat]; if(!data) return '#2AAA6A';
       let worst=4;
       allCerts(data).forEach(c=>{
         const d=certDaysLeft(c.expiry);
@@ -1182,33 +1273,38 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         document.getElementById('cert-panel-'+t).style.display=t===tab?'block':'none';
       });
       if(!certActiveBoat) return;
-      const data=CERT_DATA[certActiveBoat]; if(!data) return;
+      const data=CERT_WORKING[certActiveBoat]; if(!data) return;
+      const boat=certActiveBoat;
       if(tab==='class'){
         const el=document.getElementById('cert-panel-class');
-        let h=`<div class="cert-section-head">Class Certification — ${certActiveBoat}</div>`;
-        h+=certGridHead();
-        data.class.forEach(c=>{h+=certGridRow(c.name,c.expiry,certActiveBoat,'Class');});
+        let h=`<div class="cert-section-head">Class Certification — ${boat}</div>`;
+        h+=certEditHead();
+        data.class.forEach((c,i)=>{h+=certEditRow(c.name,c.expiry,boat,'Class','class',i);});
+        h+=certAddBtn(boat,'class');
         el.innerHTML=h;
       }
       if(tab==='hcl'){
         const el=document.getElementById('cert-panel-hcl');
-        let h=`<div class="cert-section-head">HCL Certificates — ${certActiveBoat}</div>`;
-        h+=certGridHead();
-        data.hcl.forEach(c=>{h+=certGridRow(c.name,c.expiry,certActiveBoat,'HCL');});
+        let h=`<div class="cert-section-head">HCL Certificates — ${boat}</div>`;
+        h+=certEditHead();
+        data.hcl.forEach((c,i)=>{h+=certEditRow(c.name,c.expiry,boat,'HCL','hcl',i);});
+        h+=certAddBtn(boat,'hcl');
         el.innerHTML=h;
       }
       if(tab==='radio'){
         const el=document.getElementById('cert-panel-radio');
-        let h=`<div class="cert-section-head">Radio &amp; LSA FFE — ${certActiveBoat}</div>`;
-        h+=certGridHead('Item');
-        data.radio.forEach(c=>{h+=certGridRow(c.name,c.expiry,certActiveBoat,'Radio & LSA FFE');});
+        let h=`<div class="cert-section-head">Radio &amp; LSA FFE — ${boat}</div>`;
+        h+=certEditHead('Item');
+        data.radio.forEach((c,i)=>{h+=certEditRow(c.name,c.expiry,boat,'Radio & LSA FFE','radio',i);});
+        h+=certAddBtn(boat,'radio');
         el.innerHTML=h;
       }
       if(tab==='insurance'){
         const el=document.getElementById('cert-panel-insurance');
-        let h=`<div class="cert-section-head">Insurance — ${certActiveBoat}</div>`;
-        h+=certGridHead();
-        data.insurance.forEach(c=>{h+=certGridRow(c.name,c.expiry,certActiveBoat,'Insurance');});
+        let h=`<div class="cert-section-head">Insurance — ${boat}</div>`;
+        h+=certEditHead();
+        data.insurance.forEach((c,i)=>{h+=certEditRow(c.name,c.expiry,boat,'Insurance','insurance',i);});
+        h+=certAddBtn(boat,'insurance');
         el.innerHTML=h;
       }
     }
@@ -1219,7 +1315,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       const counts={};
       OV_BANDS.forEach(b=>{counts[b.id]=0;});
       ALL_BOATS.forEach(boat=>{
-        allCerts(CERT_DATA[boat]).forEach(c=>{
+        allCerts(CERT_WORKING[boat]||CERT_DATA[boat]).forEach(c=>{
           const d=certDaysLeft(c.expiry);
           OV_BANDS.forEach(b=>{if(b.fn(d))counts[b.id]++;});
         });
@@ -1269,14 +1365,65 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       box.classList.toggle('expanded',open);
     }
 
+    let _certDocBoat='', _certDocName='', _certDocExpiry='';
     function openCertDoc(name, boat, expiry, cat){
+      _certDocBoat=boat; _certDocName=name; _certDocExpiry=expiry;
       document.getElementById('certDocTitle').textContent=name;
       document.getElementById('certDocSub').textContent=`${boat}  ·  Expires ${certFmtDate(expiry)}`;
       document.getElementById('certDocCategory').textContent=cat||'Certificate';
+      document.getElementById('certDocFileInput').value='';
+      certDocRefreshPreview();
       document.getElementById('certDocOverlay').style.display='flex';
     }
     function closeCertDoc(){
       document.getElementById('certDocOverlay').style.display='none';
+    }
+    function certDocRefreshPreview(){
+      const data=certLoadFile(_certDocBoat,_certDocName);
+      const display=document.getElementById('certDocFileDisplay');
+      const delBtn=document.getElementById('certDocDeleteBtn');
+      const dlBtn=document.getElementById('certDocDlBtn');
+      if(data){
+        delBtn.style.display='flex';
+        dlBtn.style.opacity='1'; dlBtn.style.pointerEvents='auto';
+        if(data.startsWith('data:image')){
+          display.innerHTML=`<img src="${data}" style="max-width:100%;max-height:360px;object-fit:contain;border-radius:6px">`;
+        } else {
+          display.innerHTML=`<iframe src="${data}" style="width:100%;height:340px;border:none;border-radius:6px"></iframe>`;
+        }
+      } else {
+        delBtn.style.display='none';
+        dlBtn.style.opacity='0.4'; dlBtn.style.pointerEvents='none';
+        display.innerHTML=`<div style="font-size:44px;margin-bottom:14px">📄</div>
+          <div style="font-size:13px;font-weight:600;color:#4A7AA0;margin-bottom:6px">No file uploaded yet</div>
+          <div style="font-size:11px;color:#3A5A78;line-height:1.7">Click "Upload" to attach a certificate file.<br>Supported formats: PDF · JPG · PNG</div>`;
+      }
+    }
+    function certHandleFileUpload(input){
+      const file=input.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=e=>{
+        if(certSaveFile(_certDocBoat,_certDocName,e.target.result)){
+          certDocRefreshPreview();
+          // Refresh the view button label in the cert panel
+          certSwitchTab(certActiveTab);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    function certDeleteUploadedFile(){
+      if(!confirm('Delete the uploaded certificate file?')) return;
+      certDeleteFileStored(_certDocBoat,_certDocName);
+      certDocRefreshPreview();
+      certSwitchTab(certActiveTab);
+    }
+    function certDownloadFile(){
+      const data=certLoadFile(_certDocBoat,_certDocName);
+      if(!data){alert('No file uploaded.');return;}
+      const a=document.createElement('a');
+      const ext=data.startsWith('data:image/png')?'.png':data.startsWith('data:image/jpeg')?'.jpg':'.pdf';
+      a.href=data; a.download=(_certDocName+ext).replace(/[^a-z0-9._-]/gi,'_');
+      a.click();
     }
 
   </script>
@@ -1473,18 +1620,30 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       <button onclick="closeCertDoc()" style="background:none;border:none;color:#6A8AAA;font-size:20px;cursor:pointer;line-height:1;padding:0 0 0 12px"
         onmouseover="this.style.color='#FFF'" onmouseout="this.style.color='#6A8AAA'">&#x2715;</button>
     </div>
-    <div style="flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px">
-      <div style="width:100%;background:#06101E;border:1px dashed #1E3A5F;border-radius:8px;min-height:240px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">
+    <div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-height:260px">
+      <!-- Preview area -->
+      <div id="certDocFileDisplay" style="width:100%;background:#06101E;border:1px dashed #1E3A5F;border-radius:8px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:hidden">
         <div style="font-size:44px;margin-bottom:14px">📄</div>
-        <div style="font-size:13px;font-weight:600;color:#4A7AA0;margin-bottom:6px">Certificate document will appear here</div>
-        <div style="font-size:11px;color:#3A5A78;line-height:1.7">Upload the certificate file to display it in this viewer.<br>Supported formats: PDF · JPG · PNG</div>
-        <div style="margin-top:18px;padding:8px 20px;background:#0E2030;border:0.5px solid #2A4A6A;border-radius:6px;font-size:10px;color:#4A7A9A;cursor:pointer">
-          + Upload certificate file
+        <div style="font-size:13px;font-weight:600;color:#4A7AA0;margin-bottom:6px">No file uploaded yet</div>
+        <div style="font-size:11px;color:#3A5A78;line-height:1.7">Click "Upload" to attach a certificate file.<br>Supported formats: PDF · JPG · PNG</div>
+      </div>
+      <!-- Upload + Delete buttons -->
+      <div style="display:flex;gap:8px">
+        <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px;background:#0E2030;border:1px solid #2A5A7A;border-radius:6px;font-size:11px;color:#5AB8E8;cursor:pointer;font-weight:600;transition:background 0.15s"
+          onmouseover="this.style.background='#122840'" onmouseout="this.style.background='#0E2030'">
+          &#8679; Upload certificate file
+          <input type="file" id="certDocFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="certHandleFileUpload(this)">
+        </label>
+        <div id="certDocDeleteBtn" onclick="certDeleteUploadedFile()"
+          style="display:none;padding:9px 14px;background:#1E0808;border:1px solid #5A1010;border-radius:6px;font-size:11px;color:#FF5555;cursor:pointer;font-weight:600;align-items:center;gap:6px;transition:background 0.15s"
+          onmouseover="this.style.background='#2E1010'" onmouseout="this.style.background='#1E0808'">
+          🗑 Delete / Replace
         </div>
       </div>
     </div>
     <div style="padding:11px 18px;border-top:1px solid #1E3A5F;flex-shrink:0;display:flex;gap:8px">
-      <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 0;border-radius:6px;background:#0D2A3A;border:1px solid #2A6A9A;color:#5AB8E8;font-size:11px;font-weight:600;cursor:pointer"
+      <div id="certDocDlBtn" onclick="certDownloadFile()"
+        style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 0;border-radius:6px;background:#0D2A3A;border:1px solid #2A6A9A;color:#5AB8E8;font-size:11px;font-weight:600;cursor:pointer;opacity:0.4;pointer-events:none;transition:background 0.15s"
         onmouseover="this.style.background='#102E42'" onmouseout="this.style.background='#0D2A3A'">
         &#8659;&nbsp;Download Certificate
       </div>
