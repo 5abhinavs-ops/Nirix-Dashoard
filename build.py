@@ -325,16 +325,28 @@ def run_build():
 
 """ + fleet_js + """
 
-// Expose to window (inline HTML handlers need cellDown / handleDown / cellEnter on window)
-['render','setFleet','setDay','shiftDay','jumpToday','onMonthChange','buildDD',
- 'renderKPI','renderTable','saveAll','exportJSON','showTip','hideTip','positionTip',
- 'applyStatusToCell','openAnalytics','closeAnalytics','renderAnalytics',
- 'renderBoatBars','loadChartJS','drawTrendChart','drawPieChart',
- 'loadAsBrush','setActivePaint','clearActivePaint','applyEdit',
- 'cellDown','handleDown','cellEnter','cellLeave'
-].forEach(function(fn){
-  try{if(typeof eval(fn)==='function')window[fn]=eval(fn);}catch(e){}
-});
+// Expose to window — inline HTML handlers (onmousedown, onclick etc.) need these on window
+window.cellDown=cellDown;
+window.handleDown=handleDown;
+window.cellEnter=cellEnter;
+window.cellLeave=cellLeave;
+window.toggleEdit=toggleEdit;
+window.render=render;
+window.setFleet=setFleet;
+window.setDay=setDay;
+window.shiftDay=shiftDay;
+window.jumpToday=jumpToday;
+window.onMonthChange=onMonthChange;
+window.saveAll=saveAll;
+window.exportJSON=exportJSON;
+window.showTip=showTip;
+window.hideTip=hideTip;
+window.applyEdit=applyEdit;
+window.loadAsBrush=loadAsBrush;
+window.setActivePaint=setActivePaint;
+window.clearActivePaint=clearActivePaint;
+window.openAnalytics=openAnalytics;
+window.closeAnalytics=closeAnalytics;
 
 // Undo
 var _undoStack=[];
