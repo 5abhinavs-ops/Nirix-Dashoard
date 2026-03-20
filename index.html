@@ -400,18 +400,17 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 
 
+
+
+
 /* ── FLEET OVERRIDE V5 ── */
 
 #module-fleet {
-  display: flex !important;
-  flex-direction: row !important;
-  overflow: hidden !important;
-  position: relative !important;
-  min-height: 0 !important;
+  display: flex !important; flex-direction: row !important;
+  overflow: hidden !important; position: relative !important; min-height: 0 !important;
 }
 #module-fleet #left-nav {
-  position: relative !important;
-  top: auto !important; left: auto !important; bottom: auto !important;
+  position: relative !important; top: auto !important; left: auto !important; bottom: auto !important;
   width: 180px !important; flex-shrink: 0 !important; height: 100% !important;
   overflow-y: auto !important; overflow-x: hidden !important;
   display: flex !important; flex-direction: column !important;
@@ -430,44 +429,49 @@ select option { background:#0D1F3C;color:#FFFFFF; }
   min-height: 0 !important; max-height: none !important;
 }
 
-/* POPUP — draggable floating card */
+/* POPUP */
 #module-fleet #side-panel {
   position: fixed !important;
-  width: 220px !important;
-  height: auto !important;
+  width: 220px !important; height: auto !important;
   bottom: auto !important; right: auto !important;
   border-radius: 10px !important;
   box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
-  z-index: 9999 !important;
-  overflow: visible !important;
+  z-index: 9999 !important; overflow: visible !important;
   display: none;
 }
 #module-fleet #side-panel.open { display: flex !important; }
-
-/* Drag handle — the header bar */
-#module-fleet .sp-head {
-  cursor: grab !important;
-  user-select: none !important;
-}
+#module-fleet .sp-head { cursor: grab !important; user-select: none !important; }
 #module-fleet .sp-head:active { cursor: grabbing !important; }
-
-/* Compact body — no scroll, no min-height */
 #module-fleet .sp-body {
-  flex: 0 0 auto !important;
-  overflow-y: visible !important;
-  padding: 8px 8px 2px !important;
-  max-height: none !important;
+  flex: 0 0 auto !important; overflow-y: visible !important;
+  padding: 8px 8px 2px !important; max-height: none !important;
 }
-
-/* Apply button TIGHT below reason textarea */
 #module-fleet .sp-footer {
-  flex: 0 0 auto !important;
-  padding: 6px 10px 10px !important;
-  border-top: none !important;
-  gap: 5px !important;
-  margin-top: 0 !important;
+  flex: 0 0 auto !important; padding: 6px 10px 10px !important;
+  border-top: none !important; gap: 5px !important; margin-top: 0 !important;
 }
 #module-fleet .sp-reason { margin-top: 5px !important; }
+
+/* Revert row — white swatch with dark text */
+#module-fleet #spN .sp-swatch {
+  background: #e8eaee !important;
+  border: 1.5px solid #8892b8 !important;
+}
+#module-fleet #spN { color: #c5cde8 !important; }
+#module-fleet #spN.active {
+  background: rgba(232,234,238,.15) !important;
+  border-color: #e8eaee !important;
+}
+
+/* Undo button */
+#module-fleet .sp-undo {
+  background: rgba(255,255,255,.07) !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  color: #c5cde8 !important; border-radius: 8px !important;
+  padding: 7px !important; font-size: 12px !important;
+  cursor: pointer !important; width: 100% !important;
+}
+#module-fleet .sp-undo:hover { background: rgba(255,255,255,.13) !important; color: #fff !important; }
 
 /* Edit mode */
 #module-fleet.emode .cell       { cursor: crosshair !important; }
@@ -479,8 +483,8 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 /* Analytics overlay */
 #module-fleet #analytics-overlay {
-  position: absolute !important;
-  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  position: absolute !important; top:0 !important; left:0 !important;
+  right:0 !important; bottom:0 !important;
 }
 
 /* ── END FLEET OVERRIDE V5 ── */
@@ -2257,7 +2261,7 @@ function openPicker(e,el){
   document.getElementById('sp-idle').style.display='none';
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
-  ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
+  ['A','M','S','P','W','N'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
   // Position popup (uses saved position if available, else next to cell)
   var _panel=document.getElementById('side-panel');
   var _twrap=document.querySelector('#module-fleet .twrap');
@@ -3135,9 +3139,13 @@ function applyStatusToCell(el,s,r){
   el.style.filter='';
 }
 function commitCell(el,s,r){
+  // Push current state to undo stack before overwriting
+  var ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
+  _undoStack.push({el:el, oldS:el.dataset.s||'N', oldR:el.dataset.r||'', wasEdited:el.classList.contains('edited')});
+  if(_undoStack.length>50) _undoStack.shift(); // cap stack
   applyStatusToCell(el,s,r);
   el.classList.add('edited');
-  EDITS[el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si]={s,r};
+  EDITS[ek]={s,r};
 }
 function setActivePaint(s,r){
   activePaintStatus=s;
@@ -3170,7 +3178,7 @@ function openPicker(e,el){
   document.getElementById('sp-idle').style.display='none';
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
-  ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
+  ['A','M','S','P','W','N'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
   // Position popup (uses saved position if available, else next to cell)
   var _panel=document.getElementById('side-panel');
   var _twrap=document.querySelector('#module-fleet .twrap');
@@ -3924,7 +3932,14 @@ window.initFleetModule = function(){
       </div>
     </div>
 
-    <div id="module-fleet" style="display:none;flex:1;min-height:0;overflow:hidden;">
+    
+  </div>
+</div>
+<!-- FLEET AVAILABILITY MODULE -->
+
+    
+    <!-- FLEET AVAILABILITY MODULE -->
+    <div id="module-fleet" style="display:none;">
 
 
 <!-- LEFT NAVIGATION PANEL -->
@@ -3999,6 +4014,7 @@ window.initFleetModule = function(){
       <div class="sp-row" id="spS" onclick="pickStatus('S')"><div class="sp-swatch" style="background:#FF8C00"></div>Structural damage</div>
       <div class="sp-row" id="spP" onclick="pickStatus('P')"><div class="sp-swatch" style="background:#9B30FF"></div>Propeller damage</div>
       <div class="sp-row" id="spW" onclick="pickStatus('W')"><div class="sp-swatch" style="background:#1E90FF"></div>Payment delay</div>
+      <div class="sp-row" id="spN" onclick="pickStatus('N')"><div class="sp-swatch" style="background:#e8eaee;border:1px solid #aaa"></div>Revert (clear)</div>
       <div class="sp-div"></div>
       <div class="sp-reason">
         <div class="sp-reason-lbl">Reason / note</div>
@@ -4008,6 +4024,7 @@ window.initFleetModule = function(){
   </div>
   <div class="sp-footer" id="sp-footer" style="display:none">
     <button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>
+    <button class="sp-undo"  onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">↩ Undo last</button>
     <button class="sp-close" onclick="closePicker()">✕ Close</button>
   </div>
 </div>
@@ -4410,9 +4427,13 @@ function applyStatusToCell(el,s,r){
   el.style.filter='';
 }
 function commitCell(el,s,r){
+  // Push current state to undo stack before overwriting
+  var ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
+  _undoStack.push({el:el, oldS:el.dataset.s||'N', oldR:el.dataset.r||'', wasEdited:el.classList.contains('edited')});
+  if(_undoStack.length>50) _undoStack.shift(); // cap stack
   applyStatusToCell(el,s,r);
   el.classList.add('edited');
-  EDITS[el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si]={s,r};
+  EDITS[ek]={s,r};
 }
 function setActivePaint(s,r){
   activePaintStatus=s;
@@ -4445,17 +4466,9 @@ function openPicker(e,el){
   document.getElementById('sp-idle').style.display='none';
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
-  ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
-  // Position popup (uses saved position if available, else next to cell)
-  var _panel=document.getElementById('side-panel');
-  var _twrap=document.querySelector('#module-fleet .twrap');
-  var _cRect=el.getBoundingClientRect();
-  var _tRect=_twrap?_twrap.getBoundingClientRect():{left:180};
-  var _defLeft=_tRect.left+162;
-  var _defTop=Math.min(_cRect.top, window.innerHeight-330);
-  if(window._positionPopup) window._positionPopup(_defLeft, _defTop);
-  else{ _panel.style.left=_defLeft+'px'; _panel.style.top=_defTop+'px'; }
-  _panel.classList.add('open');
+  ['A','M','S','P','W','N'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
+  document.getElementById('side-panel').classList.add('open');
+  // panel-open not needed for popup
 }
 function pickStatus(s){
   pkStatus=s;
@@ -4485,6 +4498,7 @@ function applyEdit(){
 }
 function closePicker(){
   document.getElementById('side-panel').classList.remove('open');
+   // panel-open not needed for popup
   pkTarget=null; pkStatus=null;
   document.getElementById('sp-idle').style.display='block';
   document.getElementById('sp-options').style.display='none';
@@ -4918,9 +4932,6 @@ function drawPieChart(cats, total){
 
 </script>
     </div>
-  </div>
-</div>
-<!-- FLEET AVAILABILITY MODULE -->
 
     <div id="modalOverlay" onclick="if(event.target===this)closeModal()"
   style="position:fixed;inset:0;background:rgba(4,10,24,0.88);display:none;align-items:center;justify-content:center;z-index:100">
