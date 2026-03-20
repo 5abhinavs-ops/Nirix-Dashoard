@@ -879,7 +879,7 @@ function toggleEdit(){
   const btn=document.getElementById('btn-edit');
   btn.classList.toggle('edit-on',emode);
   btn.textContent=emode?'✕ Exit Edit Mode':'✎ Edit Mode';
-  document.getElementById('edit-chip').classList.toggle('on',emode);
+  const chip=document.getElementById('edit-chip'); if(chip) chip.classList.toggle('on',emode);
   if(!emode){ closePicker(); clearActivePaint(); }
 }
 
