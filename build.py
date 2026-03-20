@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build.py  —  CLEAN REBUILD
+build.py  --  CLEAN REBUILD
 Reads index_base.html, strips any leftover fleet code, then injects fresh.
 Safe to run repeatedly.
 
@@ -39,6 +39,19 @@ def remove_div_id(text, div_id):
     return text
 
 
+def strip_script_tags_from_html_fragment(fragment):
+    """Remove all <script>...</script> from an HTML fragment (fleet_board body still had a duplicate)."""
+    out = fragment
+    low = out.lower()
+    while '<script' in low:
+        s = low.index('<script')
+        gt = out.index('>', s)
+        ec = low.index('</script>', gt)
+        out = out[:s] + out[ec + len('</script>') :]
+        low = out.lower()
+    return out.strip()
+
+
 def remove_fn(text, fn_name):
     pat = re.compile(r'\n[ \t]*function\s+' + fn_name + r'\s*\([^)]*\)\s*\{')
     for m in reversed(list(pat.finditer(text))):
@@ -58,17 +71,29 @@ def remove_fn(text, fn_name):
 
 # Marker pairs (order: outer / duplicate blocks first). Repeat until stable.
 _STRIP_PAIRS = [
-    ('/* ── FLEET CSS START ── */', '/* ── FLEET CSS END ── */'),
-    ('/* ── FLEET CSS ── */', '/* ── END FLEET CSS ── */'),
-    ('/* ── FLEET OVERRIDE', '/* ── END FLEET OVERRIDE'),
+    ('/* -- FLEET CSS START -- */', '/* -- FLEET CSS END -- */'),
+    ('/* -- FLEET CSS -- */', '/* -- END FLEET CSS -- */'),
+    ('/* -- FLEET OVERRIDE', '/* -- END FLEET OVERRIDE'),
     ('/* FLEET LAYOUT OVERRIDE */', '/* end of layout */'),
-    ('/* ── FLEET JS START ── */', '/* ── FLEET JS END ── */'),
-    ('/* ── FLEET JS ── */', '/* ── END FLEET JS ── */'),
+    ('/* -- FLEET JS START -- */', '/* -- FLEET JS END -- */'),
+    ('/* -- FLEET JS -- */', '/* -- END FLEET JS -- */'),
+    # Also handle the Unicode dash variants
+    ('\u2500\u2500 FLEET CSS START', '\u2500\u2500 FLEET CSS END'),
+    ('\u2500\u2500 FLEET CSS \u2500\u2500', '\u2500\u2500 END FLEET CSS'),
+    ('\u2500\u2500 FLEET JS START', '\u2500\u2500 FLEET JS END'),
+    ('\u2500\u2500 FLEET JS \u2500\u2500', '\u2500\u2500 END FLEET JS'),
+    ('\u2500\u2500 FLEET OVERRIDE', '\u2500\u2500 END FLEET OVERRIDE'),
 ]
 
 
 def strip_fleet_from_html(idx):
     """Remove all injected fleet CSS/JS/HTML and switchModule from merged index."""
+    # Legacy duplicate IIFE (unicode-dash comment) left from older merges — must go before main FLEET JS
+    _legacy_start = '\u2500\u2500 FLEET AVAILABILITY MODULE JS \u2500\u2500'
+    if _legacy_start in idx and '/* -- FLEET JS -- */' in idx:
+        s = idx.index('/* ' + _legacy_start + ' */')
+        e = idx.index('/* -- FLEET JS -- */', s)
+        idx = idx[:s] + idx[e:]
     for _ in range(25):
         before = idx
         for sm, em in _STRIP_PAIRS:
@@ -79,15 +104,15 @@ def strip_fleet_from_html(idx):
         for fn in ('switchModule', 'initFleetModule'):
             idx = remove_fn(idx, fn)
         idx = idx.replace('<!-- FLEET AVAILABILITY MODULE -->', '')
-        idx = idx.replace('/* ── END FLEET AVAILABILITY MODULE JS ── */', '')
-        idx = re.sub(r'(?m)^[ \t]*──[ \t]*\*/[ \t]*\n?', '', idx)
+        idx = idx.replace('/* -- END FLEET AVAILABILITY MODULE JS -- */', '')
+        idx = re.sub(r'(?m)^[ \t]*--[ \t]*\*/[ \t]*\n?', '', idx)
         if idx == before:
             break
     idx = re.sub(r'\n{4,}', '\n\n', idx)
     return idx
 
 
-# switchModule for base HTML only (no Fleet tab) — opens in browser without build.
+# switchModule for base HTML only (no Fleet tab) -- opens in browser without build.
 SWITCH_MODULE_NO_FLEET = """
     function switchModule(mod){
       activeModule=mod;
@@ -103,7 +128,7 @@ SWITCH_MODULE_NO_FLEET = """
 
 
 def inject_switch_module_no_fleet(idx):
-    """Insert dashboard-only switchModule before closing </head> script (first </script> before </head>)."""
+    """Insert dashboard-only switchModule before closing script tag near </head>."""
     needle = '</script>\n</head>'
     if needle not in idx:
         needle = '</script>\r\n</head>'
@@ -133,6 +158,15 @@ def run_build():
         '',
         fleet_js,
     )
+    # Embedded dashboard: CSS uses #module-fleet.painting, not body.painting (BUG 2 in CURSOR_INSTRUCTIONS)
+    fleet_js = fleet_js.replace(
+        "document.body.classList.add('painting');",
+        "document.getElementById('module-fleet').classList.add('painting');",
+    )
+    fleet_js = fleet_js.replace(
+        "document.body.classList.remove('painting');",
+        "document.getElementById('module-fleet').classList.remove('painting');",
+    )
 
     b0 = fleet.index('<body')
     b0 = fleet.index('>', b0) + 1
@@ -160,8 +194,10 @@ def run_build():
     )
     body = body.replace(
         '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>',
-        '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>\n    <button class="sp-undo" onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">↩ Undo last</button>',
+        '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>\n    <button class="sp-undo" onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">Undo last</button>',
     )
+    # fleet_board.html includes <script> inside <body>; omit it here — same JS is injected in <head>.
+    body = strip_script_tags_from_html_fragment(body)
     print(f'Fleet body  : {len(body):,} chars')
 
     def scope_css(css):
@@ -247,10 +283,13 @@ def run_build():
 
     scoped_css = scope_css(fleet_css)
 
-    # NOTE: Do NOT set display:flex!important on #module-fleet — it overrides JS display:none (see git b3ee033).
+    # NOTE: Do NOT set display:flex!important on #module-fleet wrapper.
+    # switchModule sets display:flex when active; !important would override display:none
+    # and break hiding. Layout rules (flex-direction, overflow, etc.) are safe to use
+    # !important because they only apply when the element is already visible.
     layout = """
 /* FLEET LAYOUT OVERRIDE */
-#module-fleet{flex-direction:row!important;flex:1!important;overflow:hidden!important;position:relative!important;min-height:0!important;}
+#module-fleet{flex-direction:row!important;overflow:hidden!important;position:relative!important;min-height:0!important;}
 #module-fleet .hdr{display:none!important;}
 #module-fleet #left-nav{position:relative!important;top:auto!important;left:auto!important;bottom:auto!important;width:180px!important;flex-shrink:0!important;height:100%!important;overflow-y:auto!important;display:flex!important;flex-direction:column!important;}
 #module-fleet .main-content{flex:1!important;margin-left:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;min-height:0!important;min-width:0!important;position:relative!important;}
@@ -277,21 +316,22 @@ def run_build():
 #module-fleet #analytics-overlay{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;}
 """
 
-    full_css = f'\n/* ── FLEET CSS ── */\n{scoped_css}\n{layout}\n/* ── END FLEET CSS ── */\n'
+    full_css = f'\n/* -- FLEET CSS -- */\n{scoped_css}\n{layout}\n/* -- END FLEET CSS -- */\n'
 
     full_js = """
-/* ── FLEET JS ── */
+/* -- FLEET JS -- */
 (function(){
-'use strict';
+
 
 """ + fleet_js + """
 
-// Expose to window
+// Expose to window (inline HTML handlers need cellDown / handleDown / cellEnter on window)
 ['render','setFleet','setDay','shiftDay','jumpToday','onMonthChange','buildDD',
  'renderKPI','renderTable','saveAll','exportJSON','showTip','hideTip','positionTip',
  'applyStatusToCell','openAnalytics','closeAnalytics','renderAnalytics',
  'renderBoatBars','loadChartJS','drawTrendChart','drawPieChart',
- 'loadAsBrush','setActivePaint','clearActivePaint','applyEdit'
+ 'loadAsBrush','setActivePaint','clearActivePaint','applyEdit',
+ 'cellDown','handleDown','cellEnter','cellLeave'
 ].forEach(function(fn){
   try{if(typeof eval(fn)==='function')window[fn]=eval(fn);}catch(e){}
 });
@@ -301,7 +341,7 @@ var _undoStack=[];
 window.undoLast=function(){
   if(!_undoStack.length){
     var b=document.getElementById('sp-undo');
-    if(b){b.textContent='Nothing to undo';setTimeout(function(){b.textContent='↩ Undo last';},1200);}
+    if(b){b.textContent='Nothing to undo';setTimeout(function(){b.textContent='Undo last';},1200);}
     return;
   }
   var en=_undoStack.pop(),el=en.el; if(!el)return;
@@ -312,7 +352,7 @@ window.undoLast=function(){
   if(en.wasEdited){EDITS[ek]={s:en.oldS,r:en.oldR};}else{delete EDITS[ek];}
   if(typeof renderKPI==='function')renderKPI();
   var b=document.getElementById('sp-undo');
-  if(b){b.textContent='✓ Undone!';setTimeout(function(){b.textContent='↩ Undo last';},1000);}
+  if(b){b.textContent='Undone!';setTimeout(function(){b.textContent='Undo last';},1000);}
 };
 window.commitCell=commitCell=function(el,s,r){
   var ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
@@ -321,7 +361,7 @@ window.commitCell=commitCell=function(el,s,r){
   applyStatusToCell(el,s,r); el.classList.add('edited'); EDITS[ek]={s:s,r:r};
 };
 
-// Drag + localStorage
+// Drag + localStorage for popup position
 (function(){
   var K='fleet_popup_pos',_e=null,_ox=0,_oy=0;
   function sv(l,t){try{localStorage.setItem(K,JSON.stringify({left:l,top:t}));}catch(e){}}
@@ -346,64 +386,14 @@ window.commitCell=commitCell=function(el,s,r){
   });
 })();
 
-// pickStatus with N
-window.pickStatus=pickStatus=function(s){
-  pkStatus=s;
-  ['A','M','S','P','W','N'].forEach(function(x){
-    var el=document.getElementById('sp'+x); if(el)el.classList.toggle('active',x===s);
-  });
-  if(pkTarget){var r=document.getElementById('sp-reason').value.trim(); applyStatusToCell(pkTarget,s,r);}
-};
+// pickStatus, openPicker, closePicker — use IIFE versions directly (no override needed)
+window.pickStatus=function(s){pickStatus(s);};
+window.openPicker=function(e,el){openPicker(e,el);};
+window.closePicker=function(){closePicker();};
 
-// openPicker as floating popup
-window.openPicker=openPicker=function(e,el){
-  pkTarget=el;
-  var ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
-  var saved=EDITS[ek];
-  pkStatus=saved?saved.s:el.dataset.s;
-  var reason=saved?saved.r:(el.dataset.r||'');
-  var slot=SLOTS[el.dataset.si];
-  document.getElementById('sp-boat').textContent=el.dataset.boat;
-  document.getElementById('sp-meta').textContent='Day '+el.dataset.d+' · '+el.dataset.m+' · '+slot+'h';
-  document.getElementById('sp-reason').value=reason;
-  document.getElementById('sp-idle').style.display='none';
-  document.getElementById('sp-options').style.display='block';
-  document.getElementById('sp-footer').style.display='flex';
-  ['A','M','S','P','W','N'].forEach(function(s){
-    var el2=document.getElementById('sp'+s); if(el2)el2.classList.toggle('active',s===pkStatus);
-  });
-  var panel=document.getElementById('side-panel');
-  var twrap=document.querySelector('#module-fleet .twrap');
-  var cRect=el.getBoundingClientRect();
-  var tRect=twrap?twrap.getBoundingClientRect():{left:180};
-  var defLeft=tRect.left+162;
-  var defTop=Math.min(cRect.top,window.innerHeight-380);
-  if(window._positionPopup)window._positionPopup(defLeft,defTop);
-  else{panel.style.left=defLeft+'px'; panel.style.top=defTop+'px';}
-  panel.classList.add('open');
-};
+// toggleEdit is defined correctly in fleet_board.html (no override needed)
 
-// closePicker
-window.closePicker=closePicker=function(){
-  document.getElementById('side-panel').classList.remove('open');
-  pkTarget=null; pkStatus=null;
-  document.getElementById('sp-idle').style.display='block';
-  document.getElementById('sp-options').style.display='none';
-  document.getElementById('sp-footer').style.display='none';
-};
-
-// toggleEdit targets module-fleet
-window.toggleEdit=toggleEdit=function(){
-  emode=!emode;
-  document.getElementById('module-fleet').classList.toggle('emode',emode);
-  var btn=document.getElementById('btn-edit');
-  btn.classList.toggle('edit-on',emode);
-  btn.textContent=emode?'✕ Exit Edit Mode':'✎ Edit Mode';
-  document.getElementById('edit-chip').classList.toggle('on',emode);
-  if(!emode){closePicker(); clearActivePaint();}
-};
-
-// init
+// init -- called once when Fleet tab is first opened
 window.initFleetModule=function(){
   if(window._fbInited)return; window._fbInited=true;
   try{
@@ -417,7 +407,7 @@ window.initFleetModule=function(){
 };
 
 })();
-/* ── END FLEET JS ── */
+/* -- END FLEET JS -- */
 """
 
     switch_fn = """
@@ -442,6 +432,9 @@ window.initFleetModule=function(){
       </div>
     </div>"""
 
+    # module-fleet must live INSIDE the flex:1 content wrapper alongside the other
+    # module divs so it participates in the same flex height chain. If placed outside
+    # (e.g. before #modalOverlay) it has no constrained height and the page scrolls.
     module_div = f"""
     <!-- FLEET AVAILABILITY MODULE -->
     <div id="module-fleet" style="display:none;flex:1;min-height:0;overflow:hidden;">
@@ -456,6 +449,7 @@ window.initFleetModule=function(){
     idx = idx.replace('</script>', switch_fn + '\n' + full_js + '\n</script>', 1)
     print('[OK] JS injected')
 
+    # ── Tab injection: insert fleet tab before the content wrapper div ──────────
     CONTENT_ANCHORS = [
         '<div style="flex:1;display:flex;overflow:hidden">',
         '<div style="flex:1; display:flex; overflow:hidden">',
@@ -467,43 +461,68 @@ window.initFleetModule=function(){
         pos = idx.index(content_anchor)
         pre = idx[:pos].rstrip()
         nc = pre.rfind('</div>')
-        idx = pre[:nc] + fleet_tab + '\n  </div>\n\n  ' + content_anchor + idx[pos + len(content_anchor) :]
+        idx = pre[:nc] + fleet_tab + '\n  </div>\n\n  ' + content_anchor + idx[pos + len(content_anchor):]
         print('[OK] Tab injected')
     else:
-        print('[WARN] Content anchor not found — using fallback tab injection')
+        print('[WARN] Content anchor not found -- using fallback tab injection')
         FALLBACK = 'id="tab-certs"'
         if FALLBACK in idx:
             pos = idx.index(FALLBACK)
             start = idx.rfind('<div', 0, pos)
             i, depth = start, 0
             while i < len(idx):
-                if idx[i : i + 4] == '<div':
+                if idx[i:i+4] == '<div':
                     depth += 1
-                elif idx[i : i + 6] == '</div>':
+                elif idx[i:i+6] == '</div>':
                     depth -= 1
                     if depth == 0:
-                        idx = idx[: i + 6] + '\n' + fleet_tab + idx[i + 6 :]
+                        idx = idx[:i+6] + '\n' + fleet_tab + idx[i+6:]
                         print('[OK] Tab injected (fallback after cert tab)')
                         break
                 i += 1
 
-    MODAL = '<div id="modalOverlay"'
-    assert MODAL in idx, 'ERROR: modalOverlay not found!'
-    idx = idx.replace(MODAL, module_div + '\n\n    ' + MODAL, 1)
-    print('[OK] Module HTML injected')
+    # ── Module HTML injection: INSIDE the flex:1 content wrapper ────────────────
+    # Find the content wrapper and walk to its closing </div>, then insert just before it.
+    # This keeps module-fleet in the same flex height chain as all other modules,
+    # preventing the board from requiring scroll to reach.
+    cw_anchor = next((a for a in CONTENT_ANCHORS if a in idx), None)
+    assert cw_anchor, 'ERROR: content wrapper not found for module injection!'
+    cw_pos = idx.index(cw_anchor)
+    depth, i, cw_close = 0, cw_pos, -1
+    while i < len(idx):
+        if idx[i:i+4] == '<div':
+            depth += 1
+        elif idx[i:i+6] == '</div>':
+            depth -= 1
+            if depth == 0:
+                cw_close = i
+                break
+        i += 1
+    assert cw_close != -1, 'ERROR: could not find closing </div> of content wrapper!'
+    idx = idx[:cw_close] + '\n' + module_div + '\n\n  ' + idx[cw_close:]
+    print('[OK] Module HTML injected (inside content wrapper)')
+
+    # ── Also fix #app to use height:100vh not min-height:100vh ──────────────────
+    # min-height lets app grow beyond viewport; height:100vh constrains it so flex
+    # children (including module-fleet) fill exactly the screen without page scroll.
+    idx = idx.replace(
+        'id="app" style="display:none;flex-direction:column;min-height:100vh;',
+        'id="app" style="display:none;flex-direction:column;height:100vh;',
+    )
 
     checks = [
-        ('module-fleet div', '<div id="module-fleet"' in idx),
-        ('tab-fleet', 'id="tab-fleet"' in idx),
-        ('switchModule', 'function switchModule' in idx),
-        ('initFleetModule', 'initFleetModule' in idx),
-        ('fleet CSS', 'FLEET CSS' in idx),
-        ('fleet JS', 'FLEET JS' in idx),
-        ('Revert row spN', 'id="spN"' in idx),
-        ('Undo button', 'sp-undo' in idx),
-        ('drag+localStorage', '_positionPopup' in idx),
+        ('module-fleet div',    '<div id="module-fleet"' in idx),
+        ('tab-fleet',           'id="tab-fleet"' in idx),
+        ('switchModule',        'function switchModule' in idx),
+        ('initFleetModule',     'initFleetModule' in idx),
+        ('fleet CSS',           'FLEET CSS' in idx),
+        ('fleet JS',            'FLEET JS' in idx),
+        ('Revert row spN',      'id="spN"' in idx),
+        ('Undo button',         'sp-undo' in idx),
+        ('drag+localStorage',   '_positionPopup' in idx),
         ('single module-fleet', idx.count('<div id="module-fleet"') == 1),
-        ('single tab-fleet', idx.count('id="tab-fleet"') == 1),
+        ('single tab-fleet',    idx.count('id="tab-fleet"') == 1),
+        ('app height:100vh',    'height:100vh' in idx),
     ]
     all_ok = True
     for name, ok in checks:
@@ -512,12 +531,12 @@ window.initFleetModule=function(){
             all_ok = False
 
     if not all_ok:
-        print('\n[WARN] Checks failed — NOT writing output')
+        print('\n[WARN] Checks failed -- NOT writing output')
         sys.exit(1)
 
     with open(INDEX_OUT, 'w', encoding='utf-8') as f:
         f.write(idx)
-    print(f'\n[DONE] Build complete — {len(idx):,} bytes ({len(idx) // 1024} KB)')
+    print(f'\n[DONE] Build complete -- {len(idx):,} bytes ({len(idx) // 1024} KB)')
 
 
 if __name__ == '__main__':

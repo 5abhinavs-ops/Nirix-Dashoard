@@ -541,10 +541,23 @@ let activePaintStatus=null, activePaintReason='';
 let pkTarget=null, pkStatus=null;
 let dragAnchorEl=null;
 let pendingDragEl=null, pendingDragEvent=null;
+let pendingStartX=0, pendingStartY=0;
+const DRAG_THRESHOLD=4; // px of movement before drag starts
 
 // Store original status of every cell before drag starts so we can restore
 // cells that leave the selection rectangle
 const origStatus={};  // key -> {s,r}
+
+// Fast lookup: cellKey -> DOM element, built once per drag session
+let cellIndex=null; // Map<key, element>
+
+function buildCellIndex(){
+  cellIndex=new Map();
+  document.querySelectorAll('td.cell').forEach(el=>{
+    const k=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
+    cellIndex.set(k,el);
+  });
+}
 
 function cellEnter(e,el){
   if(isDragging){ expandRect(el); return; }
@@ -562,14 +575,11 @@ function handleDown(e,el){
   e.stopPropagation();
   if(!emode) return;
   hideTip();
-  // Read current status from EDITS or data attributes
   const ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
   const saved=EDITS[ek];
   const s = saved ? saved.s : el.getAttribute('data-s');
   const r = saved ? saved.r : (el.getAttribute('data-r')||'');
-  // Load as active paint colour (shows in toolbar)
   setActivePaint(s, r);
-  // Start drag rect immediately from this cell
   startRectDrag(el);
   document.addEventListener('mousemove',onDragMove,{passive:true});
   document.addEventListener('mouseup',endDrag);
@@ -579,22 +589,31 @@ function cellDown(e,el){
   e.preventDefault();
   if(!emode){ setDay(parseInt(el.dataset.d)); return; }
   hideTip();
-  if(activePaintStatus){
-    pendingDragEl=el;
-    pendingDragEvent=e;
-    document.addEventListener('mousemove',onMaybeStartDrag,{passive:true});
-    document.addEventListener('mouseup',onPendingCancel);
-  } else {
-    openPicker(e,el);
-  }
+  pendingDragEl=el;
+  pendingDragEvent=e;
+  pendingStartX=e.clientX;
+  pendingStartY=e.clientY;
+  document.addEventListener('mousemove',onMaybeStartDrag,{passive:true});
+  document.addEventListener('mouseup',onPendingCancel);
 }
 
 function onMaybeStartDrag(e){
   if(!pendingDragEl) return;
+  const dx=e.clientX-pendingStartX, dy=e.clientY-pendingStartY;
+  if(Math.abs(dx)<DRAG_THRESHOLD && Math.abs(dy)<DRAG_THRESHOLD) return; // not moved enough yet
   document.removeEventListener('mousemove',onMaybeStartDrag);
   document.removeEventListener('mouseup',onPendingCancel);
-  startRectDrag(pendingDragEl);
+  const el=pendingDragEl;
   pendingDragEl=null; pendingDragEvent=null;
+  // If no active paint brush, load the cell's own colour so drag paints with it
+  if(!activePaintStatus){
+    const ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
+    const saved=EDITS[ek];
+    const s = saved ? saved.s : el.getAttribute('data-s');
+    const r = saved ? saved.r : (el.getAttribute('data-r')||'');
+    setActivePaint(s||'A', r);
+  }
+  startRectDrag(el);
   document.addEventListener('mousemove',onDragMove,{passive:true});
   document.addEventListener('mouseup',endDrag);
 }
@@ -605,6 +624,7 @@ function onPendingCancel(e){
   if(pendingDragEl){
     const el=pendingDragEl, ev=pendingDragEvent;
     pendingDragEl=null; pendingDragEvent=null;
+    // Plain click — open picker
     openPicker(ev,el);
   }
 }
@@ -627,19 +647,16 @@ function startRectDrag(anchorEl){
   dragStatus=activePaintStatus;
   dragReason=activePaintReason;
   dragAnchorEl=anchorEl;
-  boatOrderCache=null; // rebuild each drag
-  // Snapshot ORIGINAL status of ALL cells before we touch anything
-  document.querySelectorAll('td.cell').forEach(el=>{
-    const k=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
-    // Read from EDITS if already edited, else from original data attribute
+  boatOrderCache=null;
+  // Build fast cell index and snapshot originals in one pass
+  buildCellIndex();
+  cellIndex.forEach((el,k)=>{
     const saved=EDITS[k];
     origStatus[k]={ s: saved?saved.s:el.getAttribute('data-s'), r: saved?saved.r:(el.getAttribute('data-r')||'') };
   });
   document.body.classList.add('painting');
   closePicker();
   expandRect(anchorEl);
-  // Note: caller is responsible for adding mousemove/mouseup listeners
-  // (either onMaybeStartDrag or handleDown does this)
 }
 
 // Current set of visually-painted cells in the live rectangle
@@ -647,14 +664,15 @@ let liveRect=new Set(); // set of element keys currently painted
 
 function onDragMove(e){
   if(!isDragging) return;
-  // Find cell under cursor - walk up from target in case cursor is on child
   let el=document.elementFromPoint(e.clientX,e.clientY);
   while(el && !el.classList.contains('cell')) el=el.parentElement;
   if(el && el.classList.contains('cell')) expandRect(el);
 }
 
+const SC=['sA','sM','sS','sP','sW','sD','sN'];
+
 function expandRect(curEl){
-  if(!dragAnchorEl) return;
+  if(!dragAnchorEl||!cellIndex) return;
   const bo=getBoatOrder();
 
   const aDay=parseInt(dragAnchorEl.dataset.d), cDay=parseInt(curEl.dataset.d);
@@ -666,9 +684,9 @@ function expandRect(curEl){
 
   const aBoatIdx=bo.findIndex(b=>b.dsKey===aDsKey&&b.sr===aSr);
   const cBoatIdx=bo.findIndex(b=>b.dsKey===cDsKey&&b.sr===cSr);
+  if(aBoatIdx<0||cBoatIdx<0||!bo.length) return;
   const minBI=Math.min(aBoatIdx,cBoatIdx), maxBI=Math.max(aBoatIdx,cBoatIdx);
 
-  // Slot range: if same boat use si range, else all 4 slots
   const samBoat=(aBoatIdx===cBoatIdx);
   const minSi=samBoat?Math.min(aSi,cSi):0;
   const maxSi=samBoat?Math.max(aSi,cSi):3;
@@ -686,39 +704,28 @@ function expandRect(curEl){
     }
   }
 
-  // Restore cells that LEAVE the rect
+  // Restore cells that LEFT the rect — use index, no querySelectorAll
   liveRect.forEach(k=>{
     if(!newRect.has(k)){
-      // Find and restore this cell
-      const el=document.querySelector(
-        `td.cell[data-k="${k.split('|').slice(0,3).join('|').replace(/\|(\d+)\|(\d+)$/,'').replace(/(.+)\|(\d+)\|(\d+)\|(\d+)$/,'$1')}"]`
-      );
-      // Use a data-key attribute lookup instead
+      const el=cellIndex.get(k);
+      if(el){
+        el.classList.remove('drag-hi');
+        el.style.opacity='';
+        const orig=origStatus[k];
+        if(orig){ SC.forEach(c=>el.classList.remove(c)); el.classList.add('s'+orig.s); }
+      }
     }
   });
-  // Faster: iterate all cells, restore those in liveRect but not newRect
-  if(liveRect.size>0){
-    document.querySelectorAll('td.cell.drag-hi').forEach(el=>{
-      const k=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
-      if(!newRect.has(k)){
-        el.classList.remove('drag-hi');
-        const orig=origStatus[k];
-        if(orig){
-          ['sA','sM','sS','sP','sW','sD','sN'].forEach(c=>el.classList.remove(c));
-          el.classList.add('s'+orig.s);
-        }
-      }
-    });
-  }
 
-  // Paint cells IN the new rect
-  document.querySelectorAll('td.cell').forEach(el=>{
-    const k=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
-    if(newRect.has(k)){
-      el.classList.add('drag-hi');
-      ['sA','sM','sS','sP','sW','sD','sN'].forEach(c=>el.classList.remove(c));
-      el.classList.add('s'+dragStatus);
-      el.style.opacity='0.75';
+  // Paint cells entering the rect — use index
+  newRect.forEach(k=>{
+    if(!liveRect.has(k)){
+      const el=cellIndex.get(k);
+      if(el){
+        SC.forEach(c=>el.classList.remove(c));
+        el.classList.add('drag-hi','s'+dragStatus);
+        el.style.opacity='0.75';
+      }
     }
   });
 
@@ -865,7 +872,10 @@ function loadAsBrush(){
 // ── EDIT MODE ─────────────────────────────────────────
 function toggleEdit(){
   emode=!emode;
-  document.body.classList.toggle('emode',emode);
+  // Target #module-fleet when embedded in dashboard, fallback to body for standalone
+  const root=document.getElementById('module-fleet')||document.body;
+  root.classList.toggle('emode',emode);
+  root.classList.remove('painting');
   const btn=document.getElementById('btn-edit');
   btn.classList.toggle('edit-on',emode);
   btn.textContent=emode?'✕ Exit Edit Mode':'✎ Edit Mode';
