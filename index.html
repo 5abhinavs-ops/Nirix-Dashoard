@@ -397,9 +397,11 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 
 
-/* ── FLEET OVERRIDE V4 ── */
 
-/* 1. Module = flex ROW */
+
+
+/* ── FLEET OVERRIDE V5 ── */
+
 #module-fleet {
   display: flex !important;
   flex-direction: row !important;
@@ -407,81 +409,67 @@ select option { background:#0D1F3C;color:#FFFFFF; }
   position: relative !important;
   min-height: 0 !important;
 }
-
-/* 2. Left nav — natural flex child, not fixed */
 #module-fleet #left-nav {
   position: relative !important;
   top: auto !important; left: auto !important; bottom: auto !important;
-  width: 180px !important;
-  flex-shrink: 0 !important;
-  height: 100% !important;
+  width: 180px !important; flex-shrink: 0 !important; height: 100% !important;
   overflow-y: auto !important; overflow-x: hidden !important;
   display: flex !important; flex-direction: column !important;
 }
-
-/* 3. Kill fleet header */
 #module-fleet .hdr { display: none !important; }
-
-/* 4. Main content = flex COLUMN */
 #module-fleet .main-content {
-  flex: 1 !important;
-  margin-left: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  min-height: 0 !important;
-  min-width: 0 !important;
+  flex: 1 !important; margin-left: 0 !important;
+  display: flex !important; flex-direction: column !important;
+  overflow: hidden !important; min-height: 0 !important; min-width: 0 !important;
   position: relative !important;
 }
-
-/* 5. KPI + mbar don't shrink */
 #module-fleet .kpi-strip { flex-shrink: 0 !important; }
 #module-fleet .mbar      { flex-shrink: 0 !important; }
-
-/* 6. Table wrapper fills remaining height */
 #module-fleet .twrap {
-  flex: 1 !important;
-  overflow: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
+  flex: 1 !important; overflow: auto !important;
+  min-height: 0 !important; max-height: none !important;
 }
 
-/* 7. POPUP — replaces the side panel.
-      Floats at cell position, starts right after boat-name column (162px).
-      Compact size, no full-height panel. */
+/* POPUP — draggable floating card */
 #module-fleet #side-panel {
   position: fixed !important;
-  /* JS will set top/left dynamically via openPicker() */
   width: 220px !important;
   height: auto !important;
-  bottom: auto !important;
-  right: auto !important;
+  bottom: auto !important; right: auto !important;
   border-radius: 10px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,.55) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6) !important;
   z-index: 9999 !important;
   overflow: visible !important;
+  display: none;
 }
+#module-fleet #side-panel.open { display: flex !important; }
 
-/* No tall sp-body scroll — it's a compact popup */
+/* Drag handle — the header bar */
+#module-fleet .sp-head {
+  cursor: grab !important;
+  user-select: none !important;
+}
+#module-fleet .sp-head:active { cursor: grabbing !important; }
+
+/* Compact body — no scroll, no min-height */
 #module-fleet .sp-body {
   flex: 0 0 auto !important;
   overflow-y: visible !important;
-  padding: 8px 8px 4px !important;
+  padding: 8px 8px 2px !important;
   max-height: none !important;
 }
 
-/* Apply button sits tight below reason box */
+/* Apply button TIGHT below reason textarea */
 #module-fleet .sp-footer {
   flex: 0 0 auto !important;
   padding: 6px 10px 10px !important;
   border-top: none !important;
   gap: 5px !important;
+  margin-top: 0 !important;
 }
+#module-fleet .sp-reason { margin-top: 5px !important; }
 
-/* sp-reason textarea */
-#module-fleet .sp-reason { margin-top: 6px !important; }
-
-/* 8. Edit mode scoped to module-fleet */
+/* Edit mode */
 #module-fleet.emode .cell       { cursor: crosshair !important; }
 #module-fleet.emode .cell:hover { filter:brightness(.8); box-shadow:inset 0 0 0 2px #ffc832; z-index:8; }
 #module-fleet.painting .cell    { cursor: crosshair !important; user-select: none !important; }
@@ -489,14 +477,13 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 #module-fleet.emode .cell:hover .fh { opacity: 1 !important; }
 #module-fleet.emode .cell.sN .fh    { opacity: 0 !important; pointer-events: none !important; }
 
-/* 9. Analytics overlay */
+/* Analytics overlay */
 #module-fleet #analytics-overlay {
   position: absolute !important;
-  top: 0 !important; left: 0 !important;
-  right: 0 !important; bottom: 0 !important;
+  top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
 }
 
-/* ── END FLEET OVERRIDE V4 ── */
+/* ── END FLEET OVERRIDE V5 ── */
 
 </style>
   <script>
@@ -2271,8 +2258,16 @@ function openPicker(e,el){
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
   ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
-  document.getElementById('side-panel').classList.add('open');
-  document.getElementById('module-fleet').classList.add('panel-open');
+  // Position popup (uses saved position if available, else next to cell)
+  var _panel=document.getElementById('side-panel');
+  var _twrap=document.querySelector('#module-fleet .twrap');
+  var _cRect=el.getBoundingClientRect();
+  var _tRect=_twrap?_twrap.getBoundingClientRect():{left:180};
+  var _defLeft=_tRect.left+162;
+  var _defTop=Math.min(_cRect.top, window.innerHeight-330);
+  if(window._positionPopup) window._positionPopup(_defLeft, _defTop);
+  else{ _panel.style.left=_defLeft+'px'; _panel.style.top=_defTop+'px'; }
+  _panel.classList.add('open');
 }
 function pickStatus(s){
   pkStatus=s;
@@ -2302,7 +2297,6 @@ function applyEdit(){
 }
 function closePicker(){
   document.getElementById('side-panel').classList.remove('open');
-  document.getElementById('module-fleet').classList.remove('panel-open');
   pkTarget=null; pkStatus=null;
   document.getElementById('sp-idle').style.display='block';
   document.getElementById('sp-options').style.display='none';
@@ -3177,8 +3171,16 @@ function openPicker(e,el){
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
   ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
-  document.getElementById('side-panel').classList.add('open');
-  document.getElementById('module-fleet').classList.add('panel-open');
+  // Position popup (uses saved position if available, else next to cell)
+  var _panel=document.getElementById('side-panel');
+  var _twrap=document.querySelector('#module-fleet .twrap');
+  var _cRect=el.getBoundingClientRect();
+  var _tRect=_twrap?_twrap.getBoundingClientRect():{left:180};
+  var _defLeft=_tRect.left+162;
+  var _defTop=Math.min(_cRect.top, window.innerHeight-330);
+  if(window._positionPopup) window._positionPopup(_defLeft, _defTop);
+  else{ _panel.style.left=_defLeft+'px'; _panel.style.top=_defTop+'px'; }
+  _panel.classList.add('open');
 }
 function pickStatus(s){
   pkStatus=s;
@@ -3208,7 +3210,6 @@ function applyEdit(){
 }
 function closePicker(){
   document.getElementById('side-panel').classList.remove('open');
-  document.getElementById('module-fleet').classList.remove('panel-open');
   pkTarget=null; pkStatus=null;
   document.getElementById('sp-idle').style.display='block';
   document.getElementById('sp-options').style.display='none';
@@ -3661,6 +3662,102 @@ window.initFleetModule = function(){
 
 })();
 /* ── FLEET JS END ── */
+
+// ── FLEET POPUP: drag + localStorage position ──────────────────────────────
+(function(){
+  var POPUP_KEY = 'fleet_popup_pos';
+  var _dragEl = null, _dragOX = 0, _dragOY = 0;
+
+  // Save position to localStorage
+  function savePopupPos(left, top){
+    try{ localStorage.setItem(POPUP_KEY, JSON.stringify({left:left, top:top})); }catch(e){}
+  }
+
+  // Load saved position (returns null if none)
+  function loadPopupPos(){
+    try{
+      var s = localStorage.getItem(POPUP_KEY);
+      return s ? JSON.parse(s) : null;
+    }catch(e){ return null; }
+  }
+
+  // Position the popup — use saved pos if available, else default
+  window._positionPopup = function(defaultLeft, defaultTop){
+    var panel = document.getElementById('side-panel');
+    if(!panel) return;
+    var saved = loadPopupPos();
+    if(saved){
+      panel.style.left = saved.left + 'px';
+      panel.style.top  = saved.top  + 'px';
+    } else {
+      panel.style.left = defaultLeft + 'px';
+      panel.style.top  = defaultTop  + 'px';
+    }
+  };
+
+  // Drag events
+  document.addEventListener('mousedown', function(e){
+    var head = e.target.closest && e.target.closest('.sp-head');
+    if(!head) return;
+    var panel = document.getElementById('side-panel');
+    if(!panel) return;
+    _dragEl = panel;
+    var rect = panel.getBoundingClientRect();
+    _dragOX = e.clientX - rect.left;
+    _dragOY = e.clientY - rect.top;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e){
+    if(!_dragEl) return;
+    var newLeft = e.clientX - _dragOX;
+    var newTop  = e.clientY - _dragOY;
+    // Clamp to viewport
+    newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - _dragEl.offsetWidth));
+    newTop  = Math.max(0, Math.min(newTop,  window.innerHeight - _dragEl.offsetHeight));
+    _dragEl.style.left = newLeft + 'px';
+    _dragEl.style.top  = newTop  + 'px';
+  });
+
+  document.addEventListener('mouseup', function(){
+    if(!_dragEl) return;
+    // Save final position
+    savePopupPos(parseInt(_dragEl.style.left), parseInt(_dragEl.style.top));
+    _dragEl = null;
+  });
+
+  // Touch support
+  document.addEventListener('touchstart', function(e){
+    var head = e.target.closest && e.target.closest('.sp-head');
+    if(!head) return;
+    var panel = document.getElementById('side-panel');
+    if(!panel) return;
+    _dragEl = panel;
+    var t = e.touches[0];
+    var rect = panel.getBoundingClientRect();
+    _dragOX = t.clientX - rect.left;
+    _dragOY = t.clientY - rect.top;
+  }, {passive:true});
+
+  document.addEventListener('touchmove', function(e){
+    if(!_dragEl) return;
+    var t = e.touches[0];
+    var newLeft = t.clientX - _dragOX;
+    var newTop  = t.clientY - _dragOY;
+    newLeft = Math.max(0, Math.min(newLeft, window.innerWidth  - _dragEl.offsetWidth));
+    newTop  = Math.max(0, Math.min(newTop,  window.innerHeight - _dragEl.offsetHeight));
+    _dragEl.style.left = newLeft + 'px';
+    _dragEl.style.top  = newTop  + 'px';
+  }, {passive:true});
+
+  document.addEventListener('touchend', function(){
+    if(!_dragEl) return;
+    savePopupPos(parseInt(_dragEl.style.left), parseInt(_dragEl.style.top));
+    _dragEl = null;
+  });
+})();
+// ── END FLEET POPUP DRAG ──────────────────────────────────────────────────
+
 </script>
 </head>
 <body>
@@ -4349,8 +4446,16 @@ function openPicker(e,el){
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
   ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
-  document.getElementById('side-panel').classList.add('open');
-  document.getElementById('module-fleet').classList.add('panel-open');
+  // Position popup (uses saved position if available, else next to cell)
+  var _panel=document.getElementById('side-panel');
+  var _twrap=document.querySelector('#module-fleet .twrap');
+  var _cRect=el.getBoundingClientRect();
+  var _tRect=_twrap?_twrap.getBoundingClientRect():{left:180};
+  var _defLeft=_tRect.left+162;
+  var _defTop=Math.min(_cRect.top, window.innerHeight-330);
+  if(window._positionPopup) window._positionPopup(_defLeft, _defTop);
+  else{ _panel.style.left=_defLeft+'px'; _panel.style.top=_defTop+'px'; }
+  _panel.classList.add('open');
 }
 function pickStatus(s){
   pkStatus=s;
@@ -4380,7 +4485,6 @@ function applyEdit(){
 }
 function closePicker(){
   document.getElementById('side-panel').classList.remove('open');
-  document.getElementById('module-fleet').classList.remove('panel-open');
   pkTarget=null; pkStatus=null;
   document.getElementById('sp-idle').style.display='block';
   document.getElementById('sp-options').style.display='none';
