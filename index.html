@@ -111,8 +111,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
 /* CONTROLS */
 /* ── LEFT NAV PANEL ── */
-#module-fleet #left-nav {position:absolute!important;
-  position:fixed;top:52px;left:0;bottom:0;width:180px;
+#module-fleet #left-nav {position:absolute!important;top:0;left:0;bottom:0;width:180px;
   background:#1a2340;
   border-right:1px solid rgba(255,255,255,.08);
   z-index:150;
@@ -139,7 +138,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 #module-fleet .ln-spacer {flex:1}
 #module-fleet .ln-paintinfo {padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:#8892b8;min-height:28px}
 /* Content area pushed right by left nav */
-#module-fleet .main-content {margin-left:180px}
+#module-fleet .main-content {margin-left:0}
 
 /* KPI */
 #module-fleet .kpi-strip {background:var(--white);border-bottom:1px solid var(--border);padding:10px 20px;display:flex}
@@ -162,7 +161,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 #module-fleet .dayind {font-size:13px;font-weight:600;background:var(--bg);border:1px solid var(--border-dark);border-radius:6px;padding:5px 14px}
 
 /* TABLE */
-#module-fleet .twrap {overflow:auto;max-height:calc(100% - 132px)}
+#module-fleet .twrap {overflow:auto;max-height:calc(100% - 136px)}
 #module-fleet table {border-collapse:collapse;table-layout:fixed;font-size:11.5px;background:var(--white)}
 #module-fleet th, #module-fleet td {border:1px solid var(--border);white-space:nowrap;overflow:hidden;padding:0}
 
@@ -231,7 +230,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 /* STATUS PICKER PANEL */
 /* SIDE PANEL — fixed right edge, never moves */
 #module-fleet #side-panel {position:absolute!important;
-  position:fixed;top:52px;right:0;bottom:0;width:230px;
+  position:fixed;top:0;right:0;bottom:0;width:230px;
   background:#1a2340;
   border-left:1px solid rgba(255,255,255,.12);
   z-index:300;
@@ -278,9 +277,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 #module-fleet .tt-h {font-size:10px;color:#ffc832;margin-top:5px;padding-top:5px;border-top:1px solid rgba(255,255,255,.08);display:none}
 
 /* ── ANALYTICS OVERLAY ─────────────────────────────────────────────────── */
-#module-fleet #analytics-overlay {position:absolute!important;
-  display:none;
-  position:fixed;top:52px;left:180px;right:0;bottom:0;
+#module-fleet #analytics-overlay {position:absolute!important;display:none;top:0;left:0;right:0;bottom:0;
   background:#0f1526;
   z-index:400;
   overflow-y:auto;
@@ -3701,21 +3698,7 @@ window.initFleetModule = function() {
 
     <!-- ── FLEET AVAILABILITY MODULE ── -->
     <div id="module-fleet" style="flex:1;display:none;flex-direction:column;overflow:hidden;position:relative">
-<div class="hdr">
-  <div class="hdr-left">
-    <div class="hdr-logo">
-      <svg viewBox="0 0 24 24"><path d="M3 18h18v2H3v-2zm2-7h14v2H5v-2zm2-7h10v2H7V4z"/></svg>
-      <div>
-        <div class="hdr-title">Fleet Availability Board</div>
-        <div class="hdr-sub">SeaCabbie &amp; SG Shipping — Daily Operations Register</div>
-      </div>
-    </div>
-    <div class="hdr-div"></div>
-    <div class="chip chip-green"><span class="dot"></span>Live Record</div>
-    <div class="chip chip-gold" id="edit-chip"><span class="dot"></span>Edit Mode — click any cell</div>
-  </div>
-  <div class="hdr-date" id="hdr-date">—<strong id="hdr-time">—</strong></div>
-</div>
+
 
 <!-- LEFT NAVIGATION PANEL -->
 <div id="left-nav">
