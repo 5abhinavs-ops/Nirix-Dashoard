@@ -824,11 +824,14 @@ function openPicker(e,el){
 }
 function pickStatus(s){
   pkStatus=s;
-  ['A','M','S','P','W'].forEach(x=>{const el=document.getElementById('sp'+x);if(el)el.classList.toggle('active',x===s)});
+  ['A','M','S','P','W','N'].forEach(x=>{const el=document.getElementById('sp'+x);if(el)el.classList.toggle('active',x===s)});
   if(pkTarget){
     const r=document.getElementById('sp-reason').value.trim();
     applyStatusToCell(pkTarget,s,r);
   }
+  // Keep active paint brush in sync so drag uses the same colour
+  activePaintStatus=s;
+  activePaintReason=(document.getElementById('sp-reason')?document.getElementById('sp-reason').value.trim():'');
 }
 function applyEdit(){
   if(!pkTarget) return;
