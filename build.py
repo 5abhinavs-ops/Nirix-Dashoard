@@ -532,9 +532,13 @@ window.initFleetModule=function(){
     if os.path.exists(gdrive_js_path):
         gdrive_js = open(gdrive_js_path, encoding='utf-8').read()
 
-        # 1. Inject sync JS as a separate <script> block before </body>
+        # 1. Inject sync JS as a separate <script> block before the LAST </body>
+        # Must use last occurrence — index_base contains </body> inside downloadPDF's
+        # document.write() template literal; replacing the first one injects a
+        # literal </script> into that string, terminating the host script early.
         sync_block = '\n<script>\n' + gdrive_js + '\n</script>'
-        idx = idx.replace('</body>', sync_block + '\n</body>')
+        last_body = idx.rfind('</body>')
+        idx = idx[:last_body] + sync_block + '\n</body>' + idx[last_body + len('</body>'):]
 
         # 2. Inject Cloud Sync UI panel into left nav (before spacer)
         sync_ui = '''
