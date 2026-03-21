@@ -354,6 +354,8 @@ window.openAnalytics=openAnalytics;
 window.closeAnalytics=closeAnalytics;
 window.renderAnalytics=renderAnalytics;
 window.renderBoatBars=renderBoatBars;
+window.toggleMonthPicker=toggleMonthPicker;
+window.closeMonthPicker=closeMonthPicker;
 
 // Undo
 var _undoStack=[];
