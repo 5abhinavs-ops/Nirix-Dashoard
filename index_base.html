@@ -1650,85 +1650,175 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           const s=document.createElement('style');
           s.id='scifi-style';
           s.textContent=`
+            /* ── FONTS ── */
             body.theme-scifi, body.theme-scifi button, body.theme-scifi select, body.theme-scifi input {
               font-family: 'Rajdhani', 'Segoe UI', sans-serif !important;
               letter-spacing: 0.04em;
             }
+            /* Chakra Petch on all titles, labels, header */
             body.theme-scifi #module-nav > div > div:first-child,
             body.theme-scifi .sp-popup-title,
-            body.theme-scifi .sp-section-label {
+            body.theme-scifi .sp-section-label,
+            body.theme-scifi #header > div > div > div:first-child {
               font-family: 'Chakra Petch', monospace !important;
               text-transform: uppercase;
               letter-spacing: 0.14em;
             }
+            /* Fix 9: Chakra Petch on TECHNICAL DASHBOARD title */
+            body.theme-scifi #header > div[style*="justify-content:center"] div {
+              font-family: 'Chakra Petch', monospace !important;
+              letter-spacing: 0.2em;
+              text-shadow: 0 0 8px rgba(0,240,255,0.6);
+            }
+
+            /* ── TRANSITIONS ── */
             body.theme-scifi * { transition: border-color .2s, box-shadow .2s, background .2s; }
+
+            /* ── SCROLLBARS ── */
             body.theme-scifi ::-webkit-scrollbar-track { background:#0a1122 !important; }
             body.theme-scifi ::-webkit-scrollbar-thumb { background:#1e3a8a !important; }
             body.theme-scifi ::-webkit-scrollbar-thumb:hover { background:#00f0ff !important; }
+
+            /* ── HEADER ── */
             body.theme-scifi #header {
               border-bottom: 1px solid rgba(30,58,138,0.6) !important;
               box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
             }
+            /* Fix 1+2: .clip-corner + .tech-panel corner brackets on ALL header boxes */
+            body.theme-scifi #header > div {
+              position: relative !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              border-radius: 0 !important;
+              background: rgba(10,17,34,0.7) !important;
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(30,58,138,0.5) !important;
+              overflow: visible !important;
+            }
+            body.theme-scifi #header > div::before {
+              content:'';
+              position:absolute;top:0;left:0;
+              width:10px;height:10px;
+              border-top:2px solid #00f0ff;
+              border-left:2px solid #00f0ff;
+              pointer-events:none;z-index:2;
+            }
+            body.theme-scifi #header > div::after {
+              content:'';
+              position:absolute;bottom:0;right:0;
+              width:10px;height:10px;
+              border-bottom:2px solid #00f0ff;
+              border-right:2px solid #00f0ff;
+              pointer-events:none;z-index:2;
+            }
+            /* Fix 4: glow-border-cyan on TECHNICAL DASHBOARD box */
+            body.theme-scifi #header > div[style*="justify-content:center"] > div {
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              border-radius: 0 !important;
+              box-shadow: 0 0 15px rgba(0,240,255,0.2) !important;
+              border-color: rgba(0,240,255,0.4) !important;
+            }
+
+            /* ── NAV TABS ── */
             body.theme-scifi #module-nav {
               border-bottom: 1px solid rgba(30,58,138,0.5) !important;
             }
+            /* Fix 3: .clip-tab shape — diagonal cut on top-right corner */
             body.theme-scifi #module-nav > div {
               border-color: rgba(30,58,138,0.5) !important;
-              clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+              border-radius: 0 !important;
+              clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%) !important;
+              background: rgba(10,17,34,0.7) !important;
+              backdrop-filter: blur(8px);
+              position: relative;
             }
             body.theme-scifi #module-nav > div:hover {
-              border-color: rgba(0,240,255,0.35) !important;
+              border-color: rgba(0,240,255,0.4) !important;
+              box-shadow: 0 0 15px rgba(0,240,255,0.1) !important;
+            }
+            /* Fix 5: Active tab glowing bottom bar */
+            body.theme-scifi #module-nav > div[style*="opacity:1"],
+            body.theme-scifi #module-nav > div:first-child {
+              position: relative;
             }
             body.theme-scifi .ttab.on, body.theme-scifi .stab.on {
-              border-bottom-color: #00f0ff !important;
               color: #00f0ff !important;
-              text-shadow: 0 0 8px rgba(0,240,255,0.5);
+              text-shadow: 0 0 8px rgba(0,240,255,0.6);
+              border-bottom: 2px solid #00f0ff !important;
+              box-shadow: 0 2px 10px rgba(0,240,255,0.7) !important;
             }
             body.theme-scifi .ttab:hover, body.theme-scifi .stab:hover { color: #00f0ff !important; }
+
+            /* Fix 7: Pulse animation on status dots */
+            @keyframes scifi-pulse {
+              0%,100% { opacity:1; box-shadow:0 0 4px currentColor; }
+              50% { opacity:0.65; box-shadow:0 0 10px currentColor; }
+            }
+
+            /* Fix 8: glow-border-cyan on active/focused panels */
+            body.theme-scifi #module-nav > div[style*="opacity:1"] {
+              box-shadow: 0 0 15px rgba(0,240,255,0.12) !important;
+              border-color: rgba(0,240,255,0.35) !important;
+            }
+
+            /* Fix 10: Panel backdrop-filter */
+            body.theme-scifi #module-daily,
+            body.theme-scifi #module-runhrs,
+            body.theme-scifi #module-boatspecs,
+            body.theme-scifi #module-certs,
+            body.theme-scifi #module-fleet {
+              background: rgba(10,17,34,0.5) !important;
+              backdrop-filter: blur(10px);
+            }
+
+            /* ── SETTINGS BTN ── */
             body.theme-scifi #settings-btn {
               border-color: rgba(0,240,255,0.3) !important;
               box-shadow: 0 0 10px rgba(0,240,255,0.15) !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              border-radius: 0 !important;
             }
             body.theme-scifi #settings-btn:hover {
               border-color: #00f0ff !important;
-              box-shadow: 0 0 18px rgba(0,240,255,0.4) !important;
+              box-shadow: 0 0 18px rgba(0,240,255,0.5) !important;
             }
+
+            /* ── SETTINGS POPUP ── */
             body.theme-scifi #settings-popup {
               border-color: rgba(30,58,138,0.7) !important;
-              box-shadow: 0 16px 48px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,240,255,0.05) !important;
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              box-shadow: 0 16px 48px rgba(0,0,0,0.8), 0 0 15px rgba(0,240,255,0.08) !important;
+              background: rgba(10,17,34,0.9) !important;
+              backdrop-filter: blur(14px) !important;
             }
             body.theme-scifi .sp-tab.active {
               border-bottom-color: #00f0ff !important;
               color: #00f0ff !important;
               text-shadow: 0 0 6px rgba(0,240,255,0.4);
+              box-shadow: 0 2px 8px rgba(0,240,255,0.5) !important;
             }
-            body.theme-scifi .sp-popup-title { color: #00f0ff !important; }
+            body.theme-scifi .sp-popup-title {
+              font-family: 'Chakra Petch', monospace !important;
+              color: #00f0ff !important;
+              text-shadow: 0 0 8px rgba(0,240,255,0.5);
+            }
             body.theme-scifi .sp-section-label { color: rgba(0,240,255,0.8) !important; }
             body.theme-scifi .sp-theme-dropdown {
               border-color: rgba(30,58,138,0.6) !important;
               font-family: 'Chakra Petch', monospace !important;
+              clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px) !important;
+              border-radius: 0 !important;
             }
             body.theme-scifi .sp-theme-dropdown:hover { border-color: #00f0ff !important; }
-            /* Corner bracket accent on header boxes */
-            body.theme-scifi #header > div:last-child {
-              position: relative;
-              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            }
-            body.theme-scifi #header > div:last-child::before {
-              content:'';
-              position:absolute;top:0;left:0;
-              width:8px;height:8px;
-              border-top:2px solid #00f0ff;
-              border-left:2px solid #00f0ff;
-              pointer-events:none;
-            }
-            body.theme-scifi #header > div:last-child::after {
-              content:'';
-              position:absolute;bottom:0;right:0;
-              width:8px;height:8px;
-              border-bottom:2px solid #00f0ff;
-              border-right:2px solid #00f0ff;
-              pointer-events:none;
+
+            /* ── MODALS + POPUPS ── */
+            body.theme-scifi #modalOverlay > div,
+            body.theme-scifi #certDocOverlay > div {
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              background: rgba(10,17,34,0.92) !important;
+              backdrop-filter: blur(14px) !important;
+              border: 1px solid rgba(30,58,138,0.6) !important;
             }
           `;
           document.head.appendChild(s);
