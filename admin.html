@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Nirix Dashboard</title>
+  <!--
+    Firestore: admins must be able to read all users/{uid} docs for this page.
+    Extend §17.7 rules, e.g. allow read on /users/{uid} when
+    get(.../users/$(request.auth.uid)).data.role == 'admin'.
+    "Add user" uses a secondary Firebase app so the admin session is not replaced.
+  -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #0A1628;
+      color: #FFFFFF;
+      min-height: 100vh;
+      line-height: 1.45;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 22px;
+      background: #0D1F3C;
+      border-bottom: 1px solid #1E3A5F;
+    }
+    h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.04em; }
+    .btn-signout {
+      background: transparent;
+      border: 1px solid #1E3A5F;
+      border-radius: 8px;
+      color: #8AA8C0;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-signout:hover { color: #FFF; border-color: #0D9AAA; }
+    main { padding: 22px; max-width: 1200px; margin: 0 auto; }
+    .panel {
+      background: #0D1F3C;
+      border: 1px solid #1E3A5F;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .panel h2 { font-size: 12px; font-weight: 700; color: #5A7A9A; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #1A3050; vertical-align: middle; }
+    th { color: #7A9AB0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    select, input[type="email"] {
+      background: #0A1628;
+      border: 1px solid #1E3A5F;
+      border-radius: 6px;
+      color: #FFF;
+      font-size: 12px;
+      padding: 6px 8px;
+      font-family: inherit;
+    }
+    .btn {
+      background: #0D9AAA;
+      border: none;
+      border-radius: 6px;
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 7px 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn-block { background: #5A3030; }
+    .btn-block.on { background: #2A5A3A; }
+    .msg { font-size: 12px; color: #8AA8C0; margin-top: 10px; }
+    .err { color: #E05A5A; font-size: 12px; margin-top: 8px; }
+    .ok { color: #5BC4A8; font-size: 12px; margin-top: 8px; }
+    #gate { text-align: center; padding: 48px 20px; color: #8AA8C0; font-size: 14px; }
+    #app-root { display: none; }
+    label.chk { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #C0D0E0; cursor: pointer; margin-right: 10px; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="permissions.js"></script>
+</head>
+<body>
+  <div id="gate">Checking access…</div>
+  <div id="app-root">
+    <header class="header-bar">
+      <h1>Admin Panel — Nirix Dashboard</h1>
+      <button type="button" class="btn-signout" id="btn-signout">Sign out</button>
+    </header>
+    <main>
+      <div class="panel">
+        <h2>Add user</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+          <div>
+            <div style="font-size:10px;color:#5A7A9A;margin-bottom:4px">Email</div>
+            <input type="email" id="new-email" placeholder="user@example.com" style="min-width:220px" />
+          </div>
+          <div>
+            <div style="font-size:10px;color:#5A7A9A;margin-bottom:4px">Role</div>
+            <select id="new-role">
+              <option value="viewer">viewer</option>
+              <option value="manager">manager</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+          <button type="button" class="btn" id="btn-create">Create</button>
+        </div>
+        <div id="create-msg" class="msg"></div>
+      </div>
+      <div class="panel">
+        <h2>Users</h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Extra permissions</th>
+                <th>Blocked</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+        <div id="users-err" class="err"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let db = null;
+    let secondaryApp = null;
+
+    function getSecondaryApp() {
+      if (secondaryApp) return secondaryApp;
+      try {
+        secondaryApp = firebase.app('NirixAdminSecondary');
+      } catch (e) {
+        secondaryApp = firebase.initializeApp(FIREBASE_CONFIG, 'NirixAdminSecondary');
+      }
+      return secondaryApp;
+    }
+
+    function esc(s) {
+      if (s == null) return '';
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+
+    function rowBlockedState(uid) {
+      const b = document.getElementById('blk-' + uid);
+      return b && b.dataset.blocked === '1';
+    }
+
+    function setRowBlocked(uid, blocked) {
+      const b = document.getElementById('blk-' + uid);
+      if (!b) return;
+      b.dataset.blocked = blocked ? '1' : '0';
+      b.textContent = blocked ? 'Unblock' : 'Block';
+      b.classList.toggle('on', blocked);
+    }
+
+    async function loadUsers() {
+      const tbody = document.getElementById('users-tbody');
+      const errEl = document.getElementById('users-err');
+      errEl.textContent = '';
+      tbody.innerHTML = '';
+      try {
+        const snap = await db.collection('users').get();
+        snap.forEach(function (doc) {
+          const u = doc.id;
+          const d = doc.data() || {};
+          const email = d.email || '—';
+          const role = d.role || 'viewer';
+          const ex = d.extraPermissions || {};
+          const editEx = !!ex.editExpiry;
+          const upl = !!ex.upload;
+          const blocked = !!d.blocked;
+          const tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + esc(email) + '</td>' +
+            '<td><select class="role-sel" data-uid="' + esc(u) + '">' +
+            ['admin', 'manager', 'viewer'].map(function (r) {
+              return '<option value="' + r + '"' + (r === role ? ' selected' : '') + '>' + r + '</option>';
+            }).join('') +
+            '</select></td>' +
+            '<td>' +
+            '<label class="chk"><input type="checkbox" class="ex-exp" data-uid="' + esc(u) + '"' + (editEx ? ' checked' : '') + '/> editExpiry</label>' +
+            '<label class="chk"><input type="checkbox" class="ex-up" data-uid="' + esc(u) + '"' + (upl ? ' checked' : '') + '/> upload</label>' +
+            '</td>' +
+            '<td><span style="color:' + (blocked ? '#E05A5A' : '#5BC4A8') + '">' + (blocked ? 'Yes' : 'No') + '</span></td>' +
+            '<td style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;border:none">' +
+            '<button type="button" class="btn btn-block' + (blocked ? ' on' : '') + '" id="blk-' + esc(u) + '" data-uid="' + esc(u) + '" data-blocked="' + (blocked ? '1' : '0') + '">' + (blocked ? 'Unblock' : 'Block') + '</button>' +
+            '<button type="button" class="btn save-row" data-uid="' + esc(u) + '">Save</button>' +
+            '</td>';
+          tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('.btn-block').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const uid = btn.getAttribute('data-uid');
+            const next = btn.dataset.blocked !== '1';
+            setRowBlocked(uid, next);
+            const row = btn.closest('tr');
+            const span = row.querySelector('td:nth-child(4) span');
+            if (span) {
+              span.textContent = next ? 'Yes' : 'No';
+              span.style.color = next ? '#E05A5A' : '#5BC4A8';
+            }
+          });
+        });
+
+        tbody.querySelectorAll('.save-row').forEach(function (btn) {
+          btn.addEventListener('click', function () { saveRow(btn.getAttribute('data-uid')); });
+        });
+      } catch (e) {
+        console.error(e);
+        errEl.textContent = 'Could not load users. Check Firestore rules and network.';
+      }
+    }
+
+    async function saveRow(uid) {
+      const errEl = document.getElementById('users-err');
+      errEl.textContent = '';
+      const row = document.querySelector('.role-sel[data-uid="' + uid + '"]');
+      if (!row) return;
+      const tr = row.closest('tr');
+      const role = tr.querySelector('.role-sel').value;
+      const editExpiry = tr.querySelector('.ex-exp').checked;
+      const upload = tr.querySelector('.ex-up').checked;
+      const blocked = rowBlockedState(uid);
+      try {
+        await db.collection('users').doc(uid).set({
+          role: role,
+          extraPermissions: { editExpiry: editExpiry, upload: upload },
+          blocked: blocked
+        }, { merge: true });
+        errEl.textContent = '';
+        errEl.className = 'ok';
+        errEl.textContent = 'Saved ' + uid.slice(0, 8) + '…';
+        setTimeout(function () { errEl.textContent = ''; errEl.className = 'err'; }, 2000);
+      } catch (e) {
+        console.error(e);
+        errEl.className = 'err';
+        errEl.textContent = 'Save failed: ' + (e.message || e);
+      }
+    }
+
+    document.getElementById('btn-create').addEventListener('click', async function () {
+      const msg = document.getElementById('create-msg');
+      msg.textContent = '';
+      const email = (document.getElementById('new-email').value || '').trim();
+      const role = document.getElementById('new-role').value;
+      if (!email) {
+        msg.textContent = 'Enter an email address.';
+        msg.className = 'err';
+        return;
+      }
+      const tempPassword = 'Nirix' + String(Math.floor(100000 + Math.random() * 900000));
+      try {
+        const sec = getSecondaryApp();
+        const secAuth = firebase.auth(sec);
+        const cred = await secAuth.createUserWithEmailAndPassword(email, tempPassword);
+        await secAuth.signOut();
+        await db.collection('users').doc(cred.user.uid).set({
+          email: email,
+          role: role,
+          extraPermissions: { editExpiry: false, upload: false },
+          blocked: false,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        msg.className = 'ok';
+        msg.textContent = 'User created. Temporary password: ' + tempPassword + ' — share it securely with the user.';
+        document.getElementById('new-email').value = '';
+        await loadUsers();
+      } catch (e) {
+        console.error(e);
+        msg.className = 'err';
+        msg.textContent = e.message || String(e);
+      }
+    });
+
+    document.getElementById('btn-signout').addEventListener('click', function () {
+      firebase.auth().signOut().then(function () {
+        window.location.href = 'index.html';
+      });
+    });
+
+    (function init() {
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        db = firebase.firestore();
+      } catch (e) {
+        console.error(e);
+        document.getElementById('gate').textContent = 'Firebase failed to initialise.';
+        return;
+      }
+
+      firebase.auth().onAuthStateChanged(async function (user) {
+        if (!user) {
+          window.location.replace('index.html');
+          return;
+        }
+        try {
+          const snap = await db.collection('users').doc(user.uid).get();
+          const d = snap.data();
+          if (!snap.exists || !d || d.role !== 'admin' || d.blocked) {
+            await firebase.auth().signOut();
+            window.location.replace('index.html');
+            return;
+          }
+          initPermissions(d.role, d.extraPermissions);
+          document.getElementById('gate').style.display = 'none';
+          document.getElementById('app-root').style.display = 'block';
+          await loadUsers();
+        } catch (e) {
+          console.error(e);
+          document.getElementById('gate').textContent = 'Access check failed.';
+          await firebase.auth().signOut();
+          window.location.replace('index.html');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
