@@ -40,14 +40,18 @@ def remove_div_id(text, div_id):
 
 
 def strip_script_tags_from_html_fragment(fragment):
-    """Remove all <script>...</script> from an HTML fragment (fleet_board body still had a duplicate)."""
+    """Remove all <script>...</script> from an HTML fragment.
+    Uses rindex to find the LAST </script> to avoid matching
+    </script> strings inside JS template literals."""
     out = fragment
     low = out.lower()
     while '<script' in low:
         s = low.index('<script')
-        gt = out.index('>', s)
-        ec = low.index('</script>', gt)
-        out = out[:s] + out[ec + len('</script>') :]
+        # Use rindex to find the LAST </script> — avoids template literal false matches
+        ec = low.rindex('</script>')
+        if ec <= s:
+            break
+        out = out[:s] + out[ec + len('</script>'):]
         low = out.lower()
     return out.strip()
 
@@ -188,10 +192,7 @@ def run_build():
                     break
             i += 1
 
-    body = body.replace(
-        "      <div class=\"sp-row\" id=\"spW\" onclick=\"pickStatus('W')\"><div class=\"sp-swatch\" style=\"background:#1E90FF\"></div>Payment delay</div>\n      <div class=\"sp-div\"></div>",
-        "      <div class=\"sp-row\" id=\"spW\" onclick=\"pickStatus('W')\"><div class=\"sp-swatch\" style=\"background:#1E90FF\"></div>Payment delay</div>\n      <div class=\"sp-row\" id=\"spN\" onclick=\"pickStatus('N')\"><div class=\"sp-swatch\" style=\"background:#e8eaee;border:1.5px solid #8892b8\"></div>Revert (clear)</div>\n      <div class=\"sp-div\"></div>",
-    )
+    # spN "Revert (clear)" row lives in fleet_board.html source (keep in sync with picker colours)
     body = body.replace(
         '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>',
         '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>\n    <button class="sp-undo" onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">Undo last</button>',
@@ -325,13 +326,16 @@ def run_build():
 
 """ + fleet_js + """
 
-// Expose to window — inline HTML handlers (onmousedown, onclick etc.) need these on window
+// Expose to window — direct assignments only (no eval); same IIFE closures as inline handlers
 window.cellDown=cellDown;
 window.handleDown=handleDown;
 window.cellEnter=cellEnter;
 window.cellLeave=cellLeave;
 window.toggleEdit=toggleEdit;
 window.render=render;
+window.renderKPI=renderKPI;
+window.renderTable=renderTable;
+window.buildDD=buildDD;
 window.setFleet=setFleet;
 window.setDay=setDay;
 window.shiftDay=shiftDay;
@@ -341,12 +345,15 @@ window.saveAll=saveAll;
 window.exportJSON=exportJSON;
 window.showTip=showTip;
 window.hideTip=hideTip;
+window.positionTip=positionTip;
 window.applyEdit=applyEdit;
 window.loadAsBrush=loadAsBrush;
 window.setActivePaint=setActivePaint;
 window.clearActivePaint=clearActivePaint;
 window.openAnalytics=openAnalytics;
 window.closeAnalytics=closeAnalytics;
+window.renderAnalytics=renderAnalytics;
+window.renderBoatBars=renderBoatBars;
 
 // Undo
 var _undoStack=[];
@@ -357,7 +364,7 @@ window.undoLast=function(){
     return;
   }
   var en=_undoStack.pop(),el=en.el; if(!el)return;
-  ['sA','sM','sS','sP','sW','sD','sN'].forEach(function(x){el.classList.remove(x);});
+  ['sA','sM','sS','sP','sW','sN'].forEach(function(x){el.classList.remove(x);});
   el.classList.add('s'+en.oldS); el.dataset.s=en.oldS; el.dataset.r=en.oldR;
   el.classList.remove('edited');
   var ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
@@ -398,12 +405,10 @@ window.commitCell=commitCell=function(el,s,r){
   });
 })();
 
-// pickStatus, openPicker, closePicker — use IIFE versions directly (no override needed)
+// Wrappers so attribute handlers always hit the IIFE implementations
 window.pickStatus=function(s){pickStatus(s);};
 window.openPicker=function(e,el){openPicker(e,el);};
 window.closePicker=function(){closePicker();};
-
-// toggleEdit is defined correctly in fleet_board.html (no override needed)
 
 // init -- called once when Fleet tab is first opened
 window.initFleetModule=function(){
@@ -521,6 +526,40 @@ window.initFleetModule=function(){
         'id="app" style="display:none;flex-direction:column;min-height:100vh;',
         'id="app" style="display:none;flex-direction:column;height:100vh;',
     )
+
+    # ── n8n / Google Drive sync injection ──────────────────────────────────────
+    gdrive_js_path = os.path.join(BASE, 'gdrive_sync.js')
+    if os.path.exists(gdrive_js_path):
+        gdrive_js = open(gdrive_js_path, encoding='utf-8').read()
+
+        # 1. Inject sync JS as a separate <script> block before </body>
+        sync_block = '\n<script>\n' + gdrive_js + '\n</script>'
+        idx = idx.replace('</body>', sync_block + '\n</body>')
+
+        # 2. Inject Cloud Sync UI panel into left nav (before spacer)
+        sync_ui = '''
+  <div class="ln-section" id="gdrive-section">
+    <div class="ln-lbl">Cloud Sync</div>
+    <button class="ln-btn" onclick="n8nLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
+    <div id="gdrive-status" style="font-size:9.5px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
+  </div>'''
+        idx = idx.replace('<div class="ln-spacer"></div>', sync_ui + '\n<div class="ln-spacer"></div>')
+
+        # 3. Hook saveAll to also call n8nSave after committing to D
+        idx = idx.replace(
+            "b.style.display='block'; b.textContent='\u2713 Saved!'; b.style.color='#5bc4a8';",
+            "b.style.display='block'; b.textContent='\u2713 Saved!'; b.style.color='#5bc4a8';\n  if(typeof n8nSave==='function') n8nSave();"
+        )
+
+        # 4. Hook initFleetModule to auto-load from Drive on first open
+        idx = idx.replace(
+            "if(typeof render==='function')render();",
+            "if(typeof render==='function')render();\n    if(typeof n8nAutoLoad==='function') n8nAutoLoad();",
+            1  # only replace first occurrence (inside initFleetModule)
+        )
+        print('[OK] n8n Drive sync injected')
+    else:
+        print('[SKIP] gdrive_sync.js not found \u2014 Drive sync not injected')
 
     checks = [
         ('module-fleet div',    '<div id="module-fleet"' in idx),
