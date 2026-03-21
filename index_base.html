@@ -393,8 +393,9 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       let grpHTML='';
       groups.forEach(g=>{
         const items=st.filter(s=>s.status===g.key);if(!items.length)return;
-        grpHTML+=`<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase">
-          <div style="width:7px;height:7px;border-radius:50%;background:${g.dot};flex-shrink:0"></div>${g.label}
+        grpHTML+=`<div style="margin-bottom:12px"><div class="scifi-group-label" style="display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase">
+          <div style="width:7px;height:7px;border-radius:50%;background:${g.dot};flex-shrink:0"></div>
+          <div>${g.label}</div>
           <span style="font-size:9px;color:#8AA8C0;background:#0A1628;border:0.5px solid #1E2A3A;padding:1px 5px;border-radius:8px">${items.length}</span></div>
           ${items.map(s=>buildBoatCard(s.boat,s.status,s.row,today)).join('')}</div>`;
       });
@@ -402,7 +403,12 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
 
     function countBox(n,label,bg,border){
-      return `<div style="flex:1;background:${bg};border:1px solid ${border};border-radius:5px;padding:5px 3px;display:flex;flex-direction:column;align-items:center">
+      // Map bg colour to scifi CSS class for theme styling
+      const scifiClass =
+        bg==='#071E14' ? 'scifi-count-ok' :
+        bg==='#1E1200' ? 'scifi-count-alert' :
+        bg==='#1E0808' ? 'scifi-count-critical' : 'scifi-count-missing';
+      return `<div class="${scifiClass}" style="flex:1;background:${bg};border:1px solid ${border};border-radius:5px;padding:5px 3px;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:14px;font-weight:700;color:#FFFFFF;line-height:1">${n}</div>
         <div style="font-size:8px;color:#8AA8C0;margin-top:2px;text-align:center;line-height:1.2">${label}</div></div>`;
     }
@@ -424,7 +430,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       const pills=alerts.length>0?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">${alerts.slice(0,3).map(a=>`<span style="font-size:9px;padding:1px 5px;border-radius:3px;color:#FFFFFF;background:${status==='critical'?'#3A0A0A':'#3A2800'}">${a}</span>`).join('')}</div>`:'';
       const extraClass=`theme-boat-card status-${status}`;
       return `<div ${hoverOn} ${hoverOff} ${click} class="${extraClass}" style="${cursor}${opacity}display:flex;flex-direction:column;padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#0D1F3C;border:1px solid ${border}">
-        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:13px;color:#FFFFFF;flex:1">${boat}</span>${time?`<span style="font-size:10px;color:#8AA8C0">${time}</span>`:''}</div>${pills}</div>`;
+        <div style="display:flex;align-items:center;gap:6px"><span class="scifi-boat-name" style="font-size:13px;color:#FFFFFF;flex:1">${boat}</span>${time?`<span style="font-size:10px;color:#8AA8C0">${time}</span>`:''}</div>${pills}</div>`;
     }
 
     function renderMonthly(){renderRail();renderGrid();}
@@ -1602,6 +1608,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         border: '#1e3a8a', accent: '#00f0ff', text: '#FFFFFF',
         textMuted: '#8fb1d6', preview: ['#030711','#0a1122','#00f0ff']
       },
+      // REBUILT BELOW
       'cyber-indigo': {
         name: 'Cyber Indigo',
         bg: '#040510', nav: '#080B28', surface: '#0E1238',
@@ -1633,424 +1640,493 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       // Update login screen too
       const ls = document.getElementById('loginScreen');
       if(ls) ls.style.background = t.bg;
-      // Sci-Fi Grid special treatment — Chakra Petch + grid pattern + scanline + corner brackets
+      // ── SCI-FI GRID: complete faithful rebuild from Modern_theme.html reference ──
       if(themeId === 'scifi-grid'){
+        // Apply bg: grid pattern + radial glow (exact from reference)
         document.body.style.backgroundImage = [
           'linear-gradient(to right, #0f172a 1px, transparent 1px)',
           'linear-gradient(to bottom, #0f172a 1px, transparent 1px)',
-          'radial-gradient(circle at 50% 0%, rgba(0,240,255,0.12), transparent 55%)'
+          'radial-gradient(circle at 50% 0%, rgba(0,240,255,0.15), transparent 50%)'
         ].join(',');
         document.body.style.backgroundSize = '40px 40px, 40px 40px, 100% 100%';
+        document.body.style.backgroundAttachment = 'fixed';
+        // Apply header styles directly
         if(header){
-          header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.6)';
+          header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
           header.style.borderBottomColor = 'rgba(30,58,138,0.6)';
+          header.style.backdropFilter = 'blur(12px)';
         }
+        // Inject corner brackets at all 4 viewport corners
+        ['tl','tr','bl','br'].forEach(function(p){
+          var id='scifi-corner-'+p;
+          if(document.getElementById(id)) return;
+          var el=document.createElement('div');
+          el.id=id;
+          var top=p[0]==='t', left=p[1]==='l';
+          el.style.cssText='position:fixed;'+(top?'top:0':'bottom:0')+';'+(left?'left:0':'right:0')+';width:32px;height:32px;pointer-events:none;z-index:9999;';
+          el.innerHTML=
+            '<div style="position:absolute;'+(top?'top:4px':'bottom:4px')+';'+(left?'left:4px':'right:4px')+';width:32px;height:2px;background:rgba(0,240,255,0.5)"></div>'+
+            '<div style="position:absolute;'+(top?'top:4px':'bottom:4px')+';'+(left?'left:4px':'right:4px')+';width:2px;height:32px;background:rgba(0,240,255,0.5)"></div>';
+          document.body.appendChild(el);
+        });
         if(!document.getElementById('scifi-style')){
-          // Load Chakra Petch font
           const link=document.createElement('link');
           link.rel='stylesheet';
           link.href='https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap';
           document.head.appendChild(link);
-          // scanline intentionally removed
           const s=document.createElement('style');
           s.id='scifi-style';
           s.textContent=`
-            /* ── FONTS ── */
-            body.theme-scifi, body.theme-scifi button, body.theme-scifi select, body.theme-scifi input {
-              font-family: 'Rajdhani', 'Segoe UI', sans-serif !important;
-              letter-spacing: 0.04em;
-            }
-            /* Chakra Petch on all titles, labels, header */
-            body.theme-scifi #module-nav > div > div:first-child,
-            body.theme-scifi .sp-popup-title,
-            body.theme-scifi .sp-section-label,
-            body.theme-scifi #header > div > div > div:first-child {
-              font-family: 'Chakra Petch', monospace !important;
-              text-transform: uppercase;
-              letter-spacing: 0.14em;
-            }
-            /* Tab titles: Chakra Petch + glow on active tab */
-            body.theme-scifi #tab-daily > div:first-child,
-            body.theme-scifi #tab-runhrs > div:first-child,
-            body.theme-scifi #tab-boatspecs > div:first-child,
-            body.theme-scifi #tab-certs > div:first-child,
-            body.theme-scifi #tab-fleet > div:first-child {
-              font-family: 'Chakra Petch', monospace !important;
-              letter-spacing: 0.14em;
-              font-size: 13px !important;
-            }
-            body.theme-scifi #module-nav > div[style*="opacity:1"] > div:first-child {
-              color: #00f0ff !important;
-              text-shadow: 0 0 8px rgba(0,240,255,0.6);
+            /* ── CSS VARIABLES ── */
+            body.theme-scifi {
+              --sf-bg: #030711;
+              --sf-panel: #0a1122;
+              --sf-border: rgba(30,58,138,0.5);
+              --sf-cyan: #00f0ff;
+              --sf-blue: #3b82f6;
+              --sf-green: #00ff88;
+              --sf-amber: #ffb000;
+              --sf-red: #ff2a2a;
+              --sf-text: #8fb1d6;
             }
 
-            /* Fix 9: Chakra Petch on TECHNICAL DASHBOARD title */
-            body.theme-scifi #header > div[style*="justify-content:center"] div {
-              font-family: 'Chakra Petch', monospace !important;
-              letter-spacing: 0.2em;
-              text-shadow: 0 0 8px rgba(0,240,255,0.6);
+            /* ── FONTS: Rajdhani body, Chakra Petch display ── */
+            body.theme-scifi, body.theme-scifi input, body.theme-scifi select, body.theme-scifi textarea {
+              font-family: 'Rajdhani', sans-serif !important;
+            }
+            body.theme-scifi button {
+              font-family: 'Rajdhani', sans-serif !important;
+              letter-spacing: 0.05em;
             }
 
-            /* ── TRANSITIONS ── */
-            body.theme-scifi * { transition: border-color .2s, box-shadow .2s, background .2s; }
+            /* ── SCROLLBARS (exact from reference) ── */
+            body.theme-scifi ::-webkit-scrollbar { width: 4px; }
+            body.theme-scifi ::-webkit-scrollbar-track { background: #0a1122; }
+            body.theme-scifi ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 2px; }
+            body.theme-scifi ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
 
-            /* ── SCROLLBARS ── */
-            body.theme-scifi ::-webkit-scrollbar-track { background:#0a1122 !important; }
-            body.theme-scifi ::-webkit-scrollbar-thumb { background:#1e3a8a !important; }
-            body.theme-scifi ::-webkit-scrollbar-thumb:hover { background:#00f0ff !important; }
+            /* ── GLOBAL TRANSITIONS ── */
+            body.theme-scifi * { transition: color .2s, border-color .2s, background .2s, box-shadow .2s, opacity .2s; }
 
-            /* ── HEADER ── */
+            /* ── HEADER (exact) ── */
             body.theme-scifi #header {
+              background: rgba(3,7,17,0.9) !important;
               border-bottom: 1px solid rgba(30,58,138,0.6) !important;
-              box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+              backdrop-filter: blur(12px) !important;
             }
-            /* Fix 1+2: .clip-corner + .tech-panel corner brackets on ALL header boxes */
+            /* All 3 header boxes: tech-panel + clip-corner */
             body.theme-scifi #header > div {
-              position: relative !important;
-              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
-              border-radius: 0 !important;
               background: rgba(10,17,34,0.7) !important;
-              backdrop-filter: blur(10px);
               border: 1px solid rgba(30,58,138,0.5) !important;
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              backdrop-filter: blur(10px);
+              position: relative !important;
               overflow: visible !important;
             }
+            /* Corner brackets on every header box */
             body.theme-scifi #header > div::before {
               content:'';
-              position:absolute;top:0;left:0;
-              width:10px;height:10px;
-              border-top:2px solid #00f0ff;
-              border-left:2px solid #00f0ff;
-              pointer-events:none;z-index:2;
+              position:absolute; top:0; left:0;
+              width:10px; height:10px;
+              border-top: 2px solid #00f0ff;
+              border-left: 2px solid #00f0ff;
+              pointer-events:none; z-index:3;
             }
             body.theme-scifi #header > div::after {
               content:'';
-              position:absolute;bottom:0;right:0;
-              width:10px;height:10px;
-              border-bottom:2px solid #00f0ff;
-              border-right:2px solid #00f0ff;
-              pointer-events:none;z-index:2;
+              position:absolute; bottom:0; right:0;
+              width:10px; height:10px;
+              border-bottom: 2px solid #00f0ff;
+              border-right: 2px solid #00f0ff;
+              pointer-events:none; z-index:3;
             }
-            /* Fix 4: glow-border-cyan on TECHNICAL DASHBOARD box */
+            /* Centre title box: extra glow + diamond decorators via box-shadow */
             body.theme-scifi #header > div[style*="justify-content:center"] > div {
+              border: 1px solid rgba(0,240,255,0.3) !important;
+              background: rgba(0,240,255,0.05) !important;
+              box-shadow: 0 0 15px rgba(0,240,255,0.1) !important;
               clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
               border-radius: 0 !important;
-              box-shadow: 0 0 15px rgba(0,240,255,0.2) !important;
-              border-color: rgba(0,240,255,0.4) !important;
+            }
+            /* TECHNICAL DASHBOARD title: Chakra Petch + glow-text-cyan */
+            body.theme-scifi #header > div[style*="justify-content:center"] div[style*="TECHNICAL"],
+            body.theme-scifi #header > div[style*="justify-content:center"] div {
+              font-family: 'Chakra Petch', monospace !important;
+              letter-spacing: 0.25em !important;
+              text-shadow: 0 0 8px rgba(0,240,255,0.6) !important;
+            }
+            /* SG GROUP + NIRIX labels: Chakra Petch */
+            body.theme-scifi #header div[style*="letter-spacing:3px"] {
+              font-family: 'Chakra Petch', monospace !important;
+              letter-spacing: 0.15em !important;
             }
 
-            /* ── NAV TABS ── */
+            /* ── NAV TABS (clip-tab exact from reference) ── */
             body.theme-scifi #module-nav {
+              background: transparent !important;
               border-bottom: 1px solid rgba(30,58,138,0.5) !important;
+              padding-top: 8px;
+              gap: 6px !important;
             }
-            /* Fix 3: .clip-tab shape — diagonal cut on top-right corner */
             body.theme-scifi #module-nav > div {
-              border-color: rgba(30,58,138,0.5) !important;
+              background: #0a1122 !important;
+              border: 1px solid rgba(30,58,138,0.6) !important;
               border-radius: 0 !important;
-              clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%) !important;
-              background: rgba(10,17,34,0.7) !important;
-              backdrop-filter: blur(8px);
-              position: relative;
+              /* clip-tab: diagonal cut on top-right */
+              clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%) !important;
+              position: relative !important;
+              overflow: visible !important;
             }
             body.theme-scifi #module-nav > div:hover {
-              border-color: rgba(0,240,255,0.4) !important;
-              box-shadow: 0 0 15px rgba(0,240,255,0.1) !important;
+              border-color: rgba(0,240,255,0.5) !important;
             }
-            /* Fix 5: Active tab glowing bottom bar */
-            body.theme-scifi #module-nav > div[style*="opacity:1"],
-            body.theme-scifi #module-nav > div:first-child {
-              position: relative;
+            /* Tab title: Chakra Petch */
+            body.theme-scifi #module-nav > div > div:first-child {
+              font-family: 'Chakra Petch', monospace !important;
+              font-size: 12px !important;
+              letter-spacing: 0.12em !important;
+              text-transform: uppercase !important;
+              color: var(--sf-text) !important;
             }
+            body.theme-scifi #module-nav > div[style*="opacity:1"] > div:first-child {
+              color: #ffffff !important;
+            }
+            /* Hover: title turns cyan */
+            body.theme-scifi #module-nav > div:hover > div:first-child {
+              color: #00f0ff !important;
+            }
+            /* Active tab sub-buttons */
             body.theme-scifi .ttab.on, body.theme-scifi .stab.on {
               color: #00f0ff !important;
+              font-family: 'Chakra Petch', monospace !important;
               text-shadow: 0 0 8px rgba(0,240,255,0.6);
-              border-bottom: 2px solid #00f0ff !important;
-              box-shadow: 0 2px 10px rgba(0,240,255,0.7) !important;
+              border-bottom: 1px solid #00f0ff !important;
             }
-            body.theme-scifi .ttab:hover, body.theme-scifi .stab:hover { color: #00f0ff !important; }
-
-            /* Fix 7: Pulse animation on status dots */
-            @keyframes scifi-pulse {
-              0%,100% { opacity:1; box-shadow:0 0 4px currentColor; }
-              50% { opacity:0.65; box-shadow:0 0 10px currentColor; }
+            body.theme-scifi .ttab, body.theme-scifi .stab {
+              font-family: 'Chakra Petch', monospace !important;
+              color: var(--sf-text) !important;
+            }
+            body.theme-scifi .ttab:hover, body.theme-scifi .stab:hover { color: #ffffff !important; }
+            /* GLOWING BOTTOM BAR on active tab (exact from reference: h-[2px] bg-cyan shadow) */
+            body.theme-scifi #module-nav > div[style*="opacity:1"]::after {
+              content: '';
+              position: absolute;
+              bottom: 0; left: 0;
+              width: 100%; height: 2px;
+              background: #00f0ff;
+              box-shadow: 0 0 10px rgba(0,240,255,0.8), 0 0 20px rgba(0,240,255,0.4);
+              pointer-events: none;
             }
 
-            /* Fix 8: glow-border-cyan on active/focused panels */
-            body.theme-scifi #module-nav > div[style*="opacity:1"] {
-              box-shadow: 0 0 15px rgba(0,240,255,0.12) !important;
-              border-color: rgba(0,240,255,0.35) !important;
+            /* ── TODAY ROW ── */
+            body.theme-scifi #v-daily > div:first-child {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+            /* Pulsing cyan dot before Today */
+            body.theme-scifi #v-daily > div:first-child::before {
+              content: '';
+              display: inline-block;
+              width: 6px; height: 6px;
+              border-radius: 50%;
+              background: #00f0ff;
+              box-shadow: 0 0 8px rgba(0,240,255,0.8);
+              flex-shrink: 0;
+              animation: sf-pulse 3s cubic-bezier(.4,0,.6,1) infinite;
+            }
+            body.theme-scifi #v-daily > div:first-child strong {
+              font-family: 'Chakra Petch', monospace !important;
+              font-size: 13px !important;
+              letter-spacing: 0.15em;
+              color: #ffffff !important;
+              text-transform: uppercase;
+            }
+            body.theme-scifi #v-daily > div:first-child > span {
+              font-family: 'Chakra Petch', monospace !important;
+              font-size: 12px;
+              color: var(--sf-text) !important;
             }
 
-            /* Fix 10: Panel backdrop-filter */
-            body.theme-scifi #module-daily,
-            body.theme-scifi #module-runhrs,
-            body.theme-scifi #module-boatspecs,
-            body.theme-scifi #module-certs,
-            body.theme-scifi #module-fleet {
+            /* ── PULSE ANIMATION ── */
+            @keyframes sf-pulse {
+              0%,100% { opacity:1; }
+              50% { opacity:0.7; }
+            }
+
+            /* ── CONTENT PANELS (main sections) ── */
+            body.theme-scifi #v-daily {
+              background: transparent !important;
+            }
+            /* Each fleet column panel */
+            body.theme-scifi #v-daily > div > div[style*="flex:1"] {
+              background: rgba(3,7,17,0.4) !important;
+              border: 1px solid rgba(30,58,138,0.3) !important;
+              border-radius: 8px !important;
+              overflow: hidden;
+              position: relative;
+              backdrop-filter: blur(4px);
+            }
+            /* Top cyan gradient line on content panels */
+            body.theme-scifi #v-daily > div > div[style*="flex:1"]::before {
+              content: '';
+              position: absolute; top: 0; left: 0;
+              width: 100%; height: 1px;
+              background: linear-gradient(to right, transparent, rgba(0,240,255,0.5), transparent);
+              pointer-events: none;
+              z-index: 1;
+            }
+
+            /* ── COMPANY HEADER (SEA CABBIE / SG SHIPPING) ── */
+            body.theme-scifi div[style*="border-radius:7px"] {
+              background: rgba(10,17,34,0.8) !important;
+              border: 1px solid rgba(30,58,138,0.4) !important;
+              border-radius: 0 !important;
+              padding: 12px 14px !important;
+            }
+            body.theme-scifi div[style*="border-radius:7px"] div[style*="font-weight:700"][style*="text-transform:uppercase"] {
+              font-family: 'Chakra Petch', monospace !important;
+              letter-spacing: 0.15em !important;
+              font-size: 15px !important;
+              color: #ffffff !important;
+            }
+            body.theme-scifi div[style*="border-radius:7px"] div[style*="font-size:9px"] {
+              font-family: 'Chakra Petch', monospace !important;
+              color: #00f0ff !important;
+              letter-spacing: 0.2em !important;
+              font-size: 10px !important;
+            }
+
+            /* ── COUNT BOXES — EXACT from reference ── */
+            /* Apply clip-corner + status colours + TOP GLOW BAR */
+            body.theme-scifi .scifi-count-ok {
+              background: #021f14 !important;
+              border: 1px solid #004d2e !important;
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+            body.theme-scifi .scifi-count-ok::before {
+              content:''; position:absolute; top:0; left:0;
+              width:100%; height:4px;
+              background: linear-gradient(to right, transparent, rgba(0,255,136,0.3), transparent);
+              pointer-events:none;
+            }
+            body.theme-scifi .scifi-count-ok > div:first-child { color: #00a86b !important; font-family:'Chakra Petch',monospace !important; text-shadow: 0 0 5px rgba(0,168,107,0.5); }
+            body.theme-scifi .scifi-count-ok > div:last-child  { color: rgba(0,168,107,0.7) !important; font-family:'Chakra Petch',monospace !important; letter-spacing:0.1em; }
+
+            body.theme-scifi .scifi-count-alert {
+              background: #2a1b00 !important;
+              border: 1px solid #664200 !important;
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+            body.theme-scifi .scifi-count-alert::before {
+              content:''; position:absolute; top:0; left:0;
+              width:100%; height:4px;
+              background: linear-gradient(to right, transparent, rgba(255,176,0,0.3), transparent);
+              pointer-events:none;
+            }
+            body.theme-scifi .scifi-count-alert > div:first-child { color: #d48806 !important; font-family:'Chakra Petch',monospace !important; text-shadow: 0 0 5px rgba(212,136,6,0.5); }
+            body.theme-scifi .scifi-count-alert > div:last-child  { color: rgba(212,136,6,0.7) !important; font-family:'Chakra Petch',monospace !important; letter-spacing:0.1em; }
+
+            body.theme-scifi .scifi-count-critical {
+              background: #2a0505 !important;
+              border: 1px solid #660f0f !important;
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+            body.theme-scifi .scifi-count-critical::before {
+              content:''; position:absolute; top:0; left:0;
+              width:100%; height:4px;
+              background: linear-gradient(to right, transparent, rgba(255,42,42,0.3), transparent);
+              pointer-events:none;
+            }
+            body.theme-scifi .scifi-count-critical > div:first-child { color: #cc2929 !important; font-family:'Chakra Petch',monospace !important; text-shadow: 0 0 5px rgba(204,41,41,0.5); }
+            body.theme-scifi .scifi-count-critical > div:last-child  { color: rgba(204,41,41,0.7) !important; font-family:'Chakra Petch',monospace !important; letter-spacing:0.1em; }
+
+            body.theme-scifi .scifi-count-missing {
+              background: #061838 !important;
+              border: 1px solid rgba(59,130,246,0.5) !important;
+              border-radius: 0 !important;
+              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              box-shadow: inset 0 0 20px rgba(59,130,246,0.2) !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+            body.theme-scifi .scifi-count-missing::before {
+              content:''; position:absolute; top:0; left:0;
+              width:100%; height:4px;
+              background: linear-gradient(to right, transparent, rgba(59,130,246,0.8), transparent);
+              pointer-events:none;
+            }
+            body.theme-scifi .scifi-count-missing > div:first-child { color: #ffffff !important; font-family:'Chakra Petch',monospace !important; text-shadow: 0 0 8px rgba(255,255,255,0.8); }
+            body.theme-scifi .scifi-count-missing > div:last-child  { color: #3b82f6 !important; font-family:'Chakra Petch',monospace !important; letter-spacing:0.1em; }
+
+            /* ── GROUP LABEL ROW (NOT SUBMITTED / ALERT etc.) ── */
+            body.theme-scifi .scifi-group-label {
               background: rgba(10,17,34,0.5) !important;
-              backdrop-filter: blur(10px);
+              border-top: 1px solid rgba(30,58,138,0.3) !important;
+              border-bottom: 1px solid rgba(30,58,138,0.3) !important;
+              padding: 5px 10px !important;
+              display: flex !important;
+              align-items: center !important;
+              gap: 8px !important;
+              border-radius: 0 !important;
             }
+            body.theme-scifi .scifi-group-label > div:first-child {
+              /* Pulsing dot */
+              animation: sf-pulse 3s cubic-bezier(.4,0,.6,1) infinite !important;
+            }
+            body.theme-scifi .scifi-group-label > div:nth-child(2) {
+              font-family: 'Chakra Petch', monospace !important;
+              font-size: 10px !important;
+              letter-spacing: 0.15em !important;
+              text-transform: uppercase !important;
+              color: var(--sf-text) !important;
+            }
+            body.theme-scifi .scifi-group-label > span {
+              border: 1px solid rgba(59,130,246,0.4) !important;
+              background: rgba(59,130,246,0.1) !important;
+              color: #3b82f6 !important;
+              border-radius: 4px !important;
+              font-family: 'Chakra Petch', monospace !important;
+              font-size: 10px !important;
+              padding: 1px 6px !important;
+            }
+
+            /* ── BOAT CARDS (exact from reference) ── */
+            body.theme-scifi .theme-boat-card {
+              background: rgba(10,17,34,0.6) !important;
+              border: 1px solid rgba(30,58,138,0.4) !important;
+              border-radius: 0 !important;
+              padding: 10px 12px 10px 14px !important;
+              position: relative !important;
+              overflow: hidden !important;
+              cursor: pointer;
+            }
+            /* Left bar: dim blue, glows cyan on hover */
+            body.theme-scifi .theme-boat-card::before {
+              content: '';
+              position: absolute; left: 0; top: 0;
+              width: 2px; height: 100%;
+              background: rgba(30,58,138,0.8);
+              transition: background .2s, box-shadow .2s;
+              pointer-events: none;
+            }
+            /* Right-to-left gradient overlay: invisible by default, fades in on hover */
+            body.theme-scifi .theme-boat-card::after {
+              content: '';
+              position: absolute; inset: 0;
+              background: linear-gradient(to right, rgba(0,240,255,0.05), transparent);
+              opacity: 0;
+              transition: opacity .3s;
+              pointer-events: none;
+            }
+            body.theme-scifi .theme-boat-card:hover {
+              background: #0f1b33 !important;
+              border-color: rgba(0,240,255,0.5) !important;
+            }
+            body.theme-scifi .theme-boat-card:hover::before {
+              background: #00f0ff !important;
+              box-shadow: 0 0 8px rgba(0,240,255,0.8);
+            }
+            body.theme-scifi .theme-boat-card:hover::after {
+              opacity: 1;
+            }
+            /* Boat name: Chakra Petch mono */
+            body.theme-scifi .theme-boat-card .scifi-boat-name {
+              font-family: 'Chakra Petch', monospace !important;
+              font-size: 12px !important;
+              letter-spacing: 0.08em !important;
+              color: #cbd5e1 !important;
+              transition: color .2s;
+            }
+            body.theme-scifi .theme-boat-card:hover .scifi-boat-name {
+              color: #ffffff !important;
+            }
+            /* Status-specific left bar colours */
+            body.theme-scifi .theme-boat-card.status-ok::before    { background: rgba(0,255,136,0.6); }
+            body.theme-scifi .theme-boat-card.status-ok:hover::before { background: #00ff88 !important; box-shadow: 0 0 8px rgba(0,255,136,0.8); }
+            body.theme-scifi .theme-boat-card.status-alert::before  { background: rgba(255,176,0,0.6); }
+            body.theme-scifi .theme-boat-card.status-alert:hover::before { background: #ffb000 !important; box-shadow: 0 0 8px rgba(255,176,0,0.8); }
+            body.theme-scifi .theme-boat-card.status-critical::before { background: rgba(255,42,42,0.6); }
+            body.theme-scifi .theme-boat-card.status-critical:hover::before { background: #ff2a2a !important; box-shadow: 0 0 8px rgba(255,42,42,0.8); }
 
             /* ── SETTINGS BTN ── */
             body.theme-scifi #settings-btn {
-              border-color: rgba(0,240,255,0.3) !important;
-              box-shadow: 0 0 10px rgba(0,240,255,0.15) !important;
-              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+              background: rgba(10,17,34,0.8) !important;
+              border: 1px solid rgba(30,58,138,0.5) !important;
+              clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px) !important;
               border-radius: 0 !important;
             }
             body.theme-scifi #settings-btn:hover {
               border-color: #00f0ff !important;
-              box-shadow: 0 0 18px rgba(0,240,255,0.5) !important;
+              box-shadow: 0 0 12px rgba(0,240,255,0.4) !important;
             }
 
             /* ── SETTINGS POPUP ── */
             body.theme-scifi #settings-popup {
-              border-color: rgba(30,58,138,0.7) !important;
+              background: rgba(10,17,34,0.95) !important;
+              border: 1px solid rgba(30,58,138,0.7) !important;
               border-radius: 0 !important;
               clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
-              box-shadow: 0 16px 48px rgba(0,0,0,0.8), 0 0 15px rgba(0,240,255,0.08) !important;
-              background: rgba(10,17,34,0.9) !important;
-              backdrop-filter: blur(14px) !important;
-            }
-            body.theme-scifi .sp-tab.active {
-              border-bottom-color: #00f0ff !important;
-              color: #00f0ff !important;
-              text-shadow: 0 0 6px rgba(0,240,255,0.4);
-              box-shadow: 0 2px 8px rgba(0,240,255,0.5) !important;
+              box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 20px rgba(0,240,255,0.06) !important;
+              backdrop-filter: blur(16px) !important;
             }
             body.theme-scifi .sp-popup-title {
               font-family: 'Chakra Petch', monospace !important;
               color: #00f0ff !important;
               text-shadow: 0 0 8px rgba(0,240,255,0.5);
+              letter-spacing: 0.1em;
             }
-            body.theme-scifi .sp-section-label { color: rgba(0,240,255,0.8) !important; }
-            body.theme-scifi .sp-theme-dropdown {
-              border-color: rgba(30,58,138,0.6) !important;
+            body.theme-scifi .sp-tab.active {
+              color: #00f0ff !important;
+              border-bottom-color: #00f0ff !important;
+              text-shadow: 0 0 6px rgba(0,240,255,0.4);
+            }
+            body.theme-scifi .sp-section-label {
               font-family: 'Chakra Petch', monospace !important;
-              clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px) !important;
+              color: rgba(0,240,255,0.8) !important;
+              letter-spacing: 0.12em;
+            }
+            body.theme-scifi .sp-theme-dropdown {
+              background: rgba(10,17,34,0.8) !important;
+              border: 1px solid rgba(30,58,138,0.6) !important;
+              font-family: 'Chakra Petch', monospace !important;
               border-radius: 0 !important;
+              clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px) !important;
             }
             body.theme-scifi .sp-theme-dropdown:hover { border-color: #00f0ff !important; }
 
-            /* ── CSS VARIABLES for consistency ── */
-            body.theme-scifi {
-              --scifi-cyan: #00f0ff;
-              --scifi-cyan-dim: rgba(0,240,255,0.15);
-              --scifi-cyan-glow: rgba(0,240,255,0.5);
-              --scifi-blue: #1e3a8a;
-              --scifi-panel: rgba(10,17,34,0.7);
-              --scifi-panel-hover: rgba(10,17,34,0.9);
-              --scifi-text: #e2e8f0;
-              --scifi-muted: #8fb1d6;
-              --scifi-green: #00ff88;
-              --scifi-amber: #ffb000;
-              --scifi-red: #ff2a2a;
-            }
-
-            /* ── LOGIN SCREEN ── */
-            body.theme-scifi #loginScreen {
-              background: #030711 !important;
-              background-image:
-                linear-gradient(to right, #0f172a 1px, transparent 1px),
-                linear-gradient(to bottom, #0f172a 1px, transparent 1px),
-                radial-gradient(circle at 50% 0%, rgba(0,240,255,0.10), transparent 55%) !important;
-              background-size: 40px 40px, 40px 40px, 100% 100% !important;
-            }
-            body.theme-scifi #loginScreen > div {
-              background: rgba(10,17,34,0.8) !important;
-              border: 1px solid rgba(30,58,138,0.6) !important;
-              border-radius: 0 !important;
-              clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
-              backdrop-filter: blur(14px);
-              box-shadow: 0 0 40px rgba(0,240,255,0.08) !important;
-              position: relative;
-            }
-            body.theme-scifi #loginScreen > div::before {
-              content:''; position:absolute; top:0; left:0;
-              width:10px; height:10px;
-              border-top:2px solid #00f0ff; border-left:2px solid #00f0ff;
-              pointer-events:none; z-index:2;
-            }
-            body.theme-scifi #loginScreen > div::after {
-              content:''; position:absolute; bottom:0; right:0;
-              width:10px; height:10px;
-              border-bottom:2px solid #00f0ff; border-right:2px solid #00f0ff;
-              pointer-events:none; z-index:2;
-            }
-            body.theme-scifi #loginScreen div[style*="NIRIX"],
-            body.theme-scifi #loginScreen div[style*="font-size:28px"] {
-              font-family: 'Chakra Petch', monospace !important;
-              color: #00f0ff !important;
-              text-shadow: 0 0 12px rgba(0,240,255,0.7);
-              letter-spacing: 0.3em;
-            }
-            body.theme-scifi #loginPass {
-              background: rgba(10,17,34,0.8) !important;
-              border: 1px solid rgba(30,58,138,0.5) !important;
-              font-family: 'Rajdhani', sans-serif !important;
-              clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px) !important;
-              border-radius: 0 !important;
-              color: #e2e8f0 !important;
-            }
-            body.theme-scifi #loginPass:focus {
-              border-color: #00f0ff !important;
-              box-shadow: 0 0 12px rgba(0,240,255,0.3) !important;
-              outline: none;
-            }
-            body.theme-scifi #loginScreen button {
-              background: rgba(30,58,138,0.7) !important;
-              border: 1px solid rgba(0,240,255,0.4) !important;
-              font-family: 'Chakra Petch', monospace !important;
-              letter-spacing: 0.15em;
-              clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px) !important;
-              border-radius: 0 !important;
-              box-shadow: 0 0 15px rgba(0,240,255,0.1) !important;
-            }
-            body.theme-scifi #loginScreen button:hover {
-              background: rgba(0,240,255,0.15) !important;
-              box-shadow: 0 0 25px rgba(0,240,255,0.3) !important;
-            }
-
-            /* ── PAGE LOAD STAGGER ANIMATION ── */
-            @keyframes scifi-reveal {
-              from { opacity:0; transform: translateY(8px); }
-              to   { opacity:1; transform: translateY(0); }
-            }
-            body.theme-scifi #header {
-              animation: scifi-reveal 0.4s ease forwards;
-            }
-            body.theme-scifi #module-nav {
-              animation: scifi-reveal 0.4s ease 0.1s both;
-            }
-            body.theme-scifi #module-daily,
-            body.theme-scifi #module-runhrs,
-            body.theme-scifi #module-boatspecs,
-            body.theme-scifi #module-certs,
-            body.theme-scifi #module-fleet {
-              animation: scifi-reveal 0.4s ease 0.2s both;
-            }
-
-            /* ── STATUS DOT PULSE ── */
-            @keyframes scifi-dot-pulse {
-              0%,100% { opacity:1; box-shadow:0 0 3px currentColor; }
-              50%      { opacity:0.6; box-shadow:0 0 8px currentColor; }
-            }
-            /* Target the status dots rendered inside buildColumn group headers */
-            body.theme-scifi div[style*="border-radius:50%"][style*="flex-shrink:0"] {
-              animation: scifi-dot-pulse 3s cubic-bezier(0.4,0,0.6,1) infinite !important;
-            }
-
-            /* ── COUNT BOXES (Submitted/Alert/Critical/Not submitted) ── */
-            body.theme-scifi div[style*="flex:1;background"][style*="border-radius:5px"] {
-              background: var(--scifi-panel) !important;
-              border: 1px solid rgba(30,58,138,0.5) !important;
-              border-radius: 0 !important;
-              clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px) !important;
-              backdrop-filter: blur(6px);
-            }
-
-            /* ── COMPANY HEADER STRIP (Sea Cabbie / SG Shipping) ── */
-            body.theme-scifi div[style*="border-radius:7px"][style*="margin-bottom:10px"] {
-              background: var(--scifi-panel) !important;
-              border: 1px solid rgba(30,58,138,0.5) !important;
-              border-radius: 0 !important;
-              clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%) !important;
-              backdrop-filter: blur(8px);
-            }
-
-            /* ── GROUP LABELS (NOT SUBMITTED / ALERT etc.) ── */
-            body.theme-scifi div[style*="letter-spacing:0.08em"][style*="text-transform:uppercase"] > span[style*="border-radius:8px"] {
-              background: rgba(10,17,34,0.8) !important;
-              border-color: rgba(30,58,138,0.5) !important;
-              font-family: 'Chakra Petch', monospace !important;
-              font-size: 8px !important;
-            }
-
-            /* ── TODAY HEADER LINE ── */
-            body.theme-scifi #v-daily > div:first-child strong {
-              font-family: 'Chakra Petch', monospace !important;
-              color: #00f0ff !important;
-              text-shadow: 0 0 8px rgba(0,240,255,0.6);
-              letter-spacing: 0.1em;
-            }
-
-            /* ── DIVIDER LINES ── */
-            body.theme-scifi div[style*="height:0.5px"][style*="background:#1E3A5F"],
-            body.theme-scifi div[style*="height:1px"][style*="background:#1E3A5F"] {
-              background: linear-gradient(90deg, transparent, rgba(0,240,255,0.3), transparent) !important;
-              height: 1px !important;
-            }
-
-            /* ── ALERT PILLS on boat cards ── */
-            body.theme-scifi .theme-boat-card span[style*="border-radius:3px"] {
-              font-family: 'Rajdhani', sans-serif !important;
-              letter-spacing: 0.06em;
-              clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px) !important;
-              border-radius: 0 !important;
-            }
-
-            /* ── BOAT CARDS ── */
-            /* Dark navy glass base matching .tech-panel */
-            body.theme-scifi .theme-boat-card {
-              background: rgba(10,17,34,0.7) !important;
-              border: 1px solid rgba(30,58,138,0.5) !important;
-              border-left: 2px solid #00f0ff !important;
-              border-radius: 0 !important;
-              clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%) !important;
-              backdrop-filter: blur(8px);
-              font-family: 'Rajdhani', sans-serif !important;
-              letter-spacing: 0.05em;
-              position: relative;
-              overflow: hidden;
-              transition: background 0.2s, border-color 0.2s, box-shadow 0.2s !important;
-            }
-            /* Hover: radial glow shifts across the card */
-            body.theme-scifi .theme-boat-card:hover {
-              background: rgba(10,17,34,0.9) !important;
-              border-color: rgba(30,58,138,0.7) !important;
-              border-left-color: #00f0ff !important;
-              box-shadow: 0 0 15px rgba(0,240,255,0.15), inset 0 0 20px rgba(0,240,255,0.04) !important;
-            }
-            /* Glowing pseudo-element that simulates the radial hover glow shifting */
-            body.theme-scifi .theme-boat-card::before {
-              content:'';
-              position:absolute;top:0;left:-100%;
-              width:60%;height:100%;
-              background: linear-gradient(90deg, transparent, rgba(0,240,255,0.06), transparent);
-              transition: left 0.4s ease;
-              pointer-events:none;
-            }
-            body.theme-scifi .theme-boat-card:hover::before {
-              left:150%;
-            }
-            /* Status-specific left border colour */
-            body.theme-scifi .theme-boat-card.status-ok    { border-left-color: #00ff88 !important; }
-            body.theme-scifi .theme-boat-card.status-alert  { border-left-color: #ffb000 !important; }
-            body.theme-scifi .theme-boat-card.status-critical { border-left-color: #ff2a2a !important; }
-            body.theme-scifi .theme-boat-card.status-missing  { border-left-color: rgba(30,58,138,0.4) !important; }
-            /* Boat name font */
-            body.theme-scifi .theme-boat-card span:first-child {
-              font-family: 'Chakra Petch', monospace !important;
-              font-size: 12px !important;
-              letter-spacing: 0.08em;
-              text-transform: uppercase;
-            }
-
-            /* ── MODALS + POPUPS ── */
+            /* ── MODALS ── */
             body.theme-scifi #modalOverlay > div,
             body.theme-scifi #certDocOverlay > div {
+              background: rgba(10,17,34,0.96) !important;
+              border: 1px solid rgba(30,58,138,0.6) !important;
               border-radius: 0 !important;
               clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
-              background: rgba(10,17,34,0.92) !important;
-              backdrop-filter: blur(14px) !important;
-              border: 1px solid rgba(30,58,138,0.6) !important;
+              backdrop-filter: blur(16px) !important;
             }
           `;
           document.head.appendChild(s);
         }
         document.body.classList.add('theme-scifi');
       } else {
-        // Clean up scifi-specific styles when switching away
+        // Clean up scifi-specific elements when switching away
         document.body.style.backgroundSize = '';
+        document.body.style.backgroundAttachment = '';
+        ['tl','tr','bl','br'].forEach(function(p){
+          var el=document.getElementById('scifi-corner-'+p);
+          if(el) el.remove();
+        });
         document.body.classList.remove('theme-scifi');
       }
 
