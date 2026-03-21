@@ -174,9 +174,9 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 #module-fleet .cell.sc {box-shadow:inset 0 0 0 2px #1a2340;z-index:5}
 #module-fleet .sA {background:#92D050}
 #module-fleet .sM {background:#FF0000}
-#module-fleet .sS {background:#FF8C00}
-#module-fleet .sP {background:#9B30FF}
-#module-fleet .sW {background:#1E90FF}
+#module-fleet .sS {background:#4472C4}
+#module-fleet .sP {background:#FF66FF}
+#module-fleet .sW {background:#ED7D31}
 
 #module-fleet .sN {background:#e8eaee}
 
@@ -736,6 +736,100 @@ h1{font-size:18px;font-weight:700;color:#0A1628;margin-bottom:4px}
 <div class="badge" style="${document.getElementById('modal-badge').style.cssText.replace(/background:[^;]+/,'background:#f0f4f8').replace(/color:[^;]+/,'color:#0A1628').replace(/border:[^;]+/,'border:1px solid #c0cdd8')}">${badge}</div>
 ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color:#FFFFFF/g,'color:#0A1628').replace(/color:#8AA8C0/g,'color:#5A7A9A').replace(/color:#C84040/g,'color:#C84040').replace(/border[^:]*:0\.5px solid #1A2F4A/g,'border-bottom:1px solid #EEF2F6').replace(/border[^:]*:0\.5px solid #1E3A5F/g,'border:1px solid #D0DDE8').replace(/height:105px/g,'height:120px').replace(/background:#0A1628/g,'background:#f5f7fa')}
 <script>window.onload=function(){window.print();}<\/script>
+
+<script>
+// ── NIRIX FLEET BOARD — n8n / Google Drive Sync ──────────────────────────────
+// Calls n8n webhooks to save/load fleet data to Google Drive.
+// No OAuth, no popup — credentials stay in n8n.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const N8N_BASE    = 'https://abnv5.app.n8n.cloud/webhook';
+const N8N_SECRET  = 'nirix2026fleet';
+const SAVE_PATH   = N8N_BASE + '/nirix-fleet-save';
+const LOAD_PATH   = N8N_BASE + '/nirix-fleet-load';
+
+// ── SAVE ─────────────────────────────────────────────────────────────────────
+
+async function n8nSave() {
+  _showSyncStatus('Saving to Drive…', 'busy');
+  try {
+    const res = await fetch(SAVE_PATH, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-nirix-secret': N8N_SECRET
+      },
+      body: JSON.stringify(D)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      _showSyncStatus('✓ Saved to Drive', 'ok');
+    } else {
+      _showSyncStatus('Save failed: ' + (data.error || res.status), 'error');
+    }
+  } catch (e) {
+    _showSyncStatus('Save error: ' + e.message, 'error');
+    console.error('n8nSave error:', e);
+  }
+}
+
+// ── LOAD ─────────────────────────────────────────────────────────────────────
+
+async function n8nLoad() {
+  _showSyncStatus('Loading from Drive…', 'busy');
+  try {
+    const res = await fetch(LOAD_PATH, {
+      method: 'GET',
+      headers: { 'x-nirix-secret': N8N_SECRET }
+    });
+    if (res.status === 404) {
+      _showSyncStatus('No saved data yet', 'warn');
+      return;
+    }
+    const data = await res.json();
+    if (data.ok && data.data) {
+      // Merge loaded data into D
+      Object.assign(D, data.data);
+      // Re-render board with loaded data
+      if (typeof render === 'function') render();
+      _showSyncStatus('✓ Loaded from Drive', 'ok');
+    } else {
+      _showSyncStatus('Load failed: ' + (data.error || 'unknown'), 'error');
+    }
+  } catch (e) {
+    _showSyncStatus('Load error: ' + e.message, 'error');
+    console.error('n8nLoad error:', e);
+  }
+}
+
+// ── UI STATUS ─────────────────────────────────────────────────────────────────
+
+function _showSyncStatus(msg, type) {
+  const el = document.getElementById('gdrive-status');
+  if (!el) return;
+  const colors = { ok: '#5bc4a8', error: '#FF5555', warn: '#FF8C00', busy: '#8892b8' };
+  el.textContent = msg;
+  el.style.color = colors[type] || '#8892b8';
+  el.style.opacity = '1';
+  if (type === 'ok') {
+    setTimeout(() => { el.style.opacity = '0'; }, 3000);
+  }
+}
+
+// ── AUTO-LOAD on fleet module init ────────────────────────────────────────────
+// Called once when the Fleet tab is first opened
+
+function n8nAutoLoad() {
+  // Small delay so the board renders first, then overlays saved data
+  setTimeout(n8nLoad, 800);
+}
+
+// Expose to window
+window.n8nSave     = n8nSave;
+window.n8nLoad     = n8nLoad;
+window.n8nAutoLoad = n8nAutoLoad;
+
+</script>
 </body></html>`);
       w.document.close();
     }
@@ -1705,9 +1799,9 @@ const MO = ['Aug_2025','Sep_2025','Oct_2025','Nov_2025','Dec_2025','Jan_2026','F
 const ML = {Aug_2025:'August 2025',Sep_2025:'September 2025',Oct_2025:'October 2025',Nov_2025:'November 2025',Dec_2025:'December 2025',Jan_2026:'January 2026',Feb_2026:'February 2026',Mar_2026:'March 2026'};
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MJS = {Aug:7,Sep:8,Oct:9,Nov:10,Dec:11,Jan:0,Feb:1,Mar:2};
-const SL  = {A:'Available',M:'Machinery Issue',S:'Structural Damage',P:'Propeller Damage',W:'Payment Delay',N:'No Data'};
-const SBG = {A:'#92D050',M:'#FF0000',S:'#FF8C00',P:'#9B30FF',W:'#1E90FF',N:'#e8eaee'};
-const SFG = {A:'#2d5a1a',M:'#fff',S:'#fff',P:'#fff',W:'#fff',N:'#9ba3b8'};
+const SL  = {A:'Available',M:'Machinery Issues',S:'Structural Damage',P:'Propeller Damage',W:'Payment Delays',N:'No Data'};
+const SBG = {A:'#92D050',M:'#FF0000',S:'#4472C4',P:'#FF66FF',W:'#ED7D31',N:'#e8eaee'};
+const SFG = {A:'#2d5a1a',M:'#fff',S:'#fff',P:'#333',W:'#fff',N:'#9ba3b8'};
 const SLOTS = ['00-06','06-12','12-18','18-24'];
 
 let fleet='SCB', mk='Mar_2026', selDay=19, emode=false;
@@ -2116,7 +2210,7 @@ function openPicker(e,el){
   document.getElementById('sp-idle').style.display='none';
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
-  ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
+  ['A','M','S','P','W','N'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
   document.getElementById('side-panel').classList.add('open');
   document.body.classList.add('panel-open');
 }
@@ -2199,7 +2293,11 @@ function saveAll(){
   document.title='Fleet Availability Board';
   const b=document.getElementById('btn-save');
   b.style.display='block'; b.textContent='✓ Saved!'; b.style.color='#5bc4a8';
+  if(typeof n8nSave==='function') n8nSave();
   setTimeout(()=>{ b.style.display='none'; b.textContent='✓ Save changes'; b.style.color=''; },2000);
+  // Refresh analytics if overlay is open
+  const ov=document.getElementById('analytics-overlay');
+  if(ov && ov.classList.contains('open')) renderAnalytics();
 }
 
 function exportJSON(){
@@ -2296,7 +2394,12 @@ function renderAnalytics(){
     if(!ds) return;
     const boats = ds.boats.map(b=>{
       const cnt={A:0,M:0,S:0,P:0,W:0,N:0};
-      b.days.forEach(d=>{ const s=d.s||'N'; cnt[s]=(cnt[s]||0)+1; });
+      b.days.forEach(d=>{
+        // Overlay live EDITS (slot 1 = canonical) on top of saved D data
+        const ek=dsKey+'|'+b.sr+'|'+d.d+'|1';
+        const s=(EDITS[ek]?EDITS[ek].s:d.s)||'N';
+        cnt[s]=(cnt[s]||0)+1;
+      });
       const total = cnt.A+cnt.M+cnt.S+cnt.P+cnt.W; // exclude N
       return {name:b.name, avail:cnt.A, M:cnt.M, S:cnt.S, P:cnt.P, W:cnt.W, total};
     });
@@ -2414,13 +2517,6 @@ function renderAnalytics(){
         <div class="an-card">
           <div class="an-card-title">Availability per Boat — <span id="an-sel-month-lbl">${selML}</span></div>
           <div id="an-boat-bars"></div>
-          <div class="an-bar-legend" style="margin-top:12px">
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#92D050"></div>Available</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#FF0000"></div>Machinery</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#FF8C00"></div>Structural</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#9B30FF"></div>Propeller</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#1E90FF"></div>Payment</div>
-                      </div>
         </div>
         <div class="an-card">
           <div class="an-card-title">Combined Downtime Breakdown (All Months)</div>
@@ -2486,7 +2582,7 @@ function renderBoatBars(md, isScb){
   }).join('');
 
   const SEGS=[
-    {k:'avail',c:'#6abf45'},{k:'M',c:'#cc1414'},{k:'S',c:'#c96e00'},{k:'P',c:'#6b1b99'},{k:'W',c:'#0a5c96'},
+    {k:'avail',c:'#92D050'},{k:'M',c:'#FF0000'},{k:'S',c:'#4472C4'},{k:'P',c:'#FF66FF'},{k:'W',c:'#ED7D31'},
   ];
 
   const bars=boats.map(function(b,i){
@@ -2509,8 +2605,8 @@ function renderBoatBars(md, isScb){
   }).join('');
 
   const legendItems=[
-    {c:'#92D050',l:'Operational'},{c:'#FF3333',l:'Machinery'},
-    {c:'#FF8C00',l:'Structural'},{c:'#9B30FF',l:'Propeller'},{c:'#1E90FF',l:'Payment'},
+    {c:'#92D050',l:'Available'},{c:'#FF0000',l:'Machinery Issues'},
+    {c:'#4472C4',l:'Structural Damage'},{c:'#FF66FF',l:'Propeller Damage'},{c:'#ED7D31',l:'Payment Delays'},
   ];
   const legend=legendItems.map(function(x){
     return '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6a7498">'+
@@ -2575,9 +2671,9 @@ function drawPieChart(cats, total){
     ctx.parentElement.innerHTML='<p style="color:#5a6278;text-align:center;padding:40px 0">No downtime recorded</p>';
     return;
   }
-  const labels=['Machinery','Structural','Propeller','Payment Delay'];
+  const labels=['Machinery Issues','Structural Damage','Propeller Damage','Payment Delays'];
   const vals=[cats.M,cats.S,cats.P,cats.W];
-  const colors=['#FF4444','#FF8C00','#9B30FF','#1E90FF'];
+  const colors=['#FF0000','#4472C4','#FF66FF','#ED7D31'];
   const filtered = labels.map((l,i)=>({l,v:vals[i],c:colors[i]})).filter(x=>x.v>0);
   const ch=new Chart(ctx,{
     type:'doughnut',
@@ -2615,13 +2711,16 @@ function drawPieChart(cats, total){
 
 
 
-// Expose to window — inline HTML handlers (onmousedown, onclick etc.) need these on window
+// Expose to window — direct assignments only (no eval); same IIFE closures as inline handlers
 window.cellDown=cellDown;
 window.handleDown=handleDown;
 window.cellEnter=cellEnter;
 window.cellLeave=cellLeave;
 window.toggleEdit=toggleEdit;
 window.render=render;
+window.renderKPI=renderKPI;
+window.renderTable=renderTable;
+window.buildDD=buildDD;
 window.setFleet=setFleet;
 window.setDay=setDay;
 window.shiftDay=shiftDay;
@@ -2631,12 +2730,15 @@ window.saveAll=saveAll;
 window.exportJSON=exportJSON;
 window.showTip=showTip;
 window.hideTip=hideTip;
+window.positionTip=positionTip;
 window.applyEdit=applyEdit;
 window.loadAsBrush=loadAsBrush;
 window.setActivePaint=setActivePaint;
 window.clearActivePaint=clearActivePaint;
 window.openAnalytics=openAnalytics;
 window.closeAnalytics=closeAnalytics;
+window.renderAnalytics=renderAnalytics;
+window.renderBoatBars=renderBoatBars;
 
 // Undo
 var _undoStack=[];
@@ -2647,7 +2749,7 @@ window.undoLast=function(){
     return;
   }
   var en=_undoStack.pop(),el=en.el; if(!el)return;
-  ['sA','sM','sS','sP','sW','sD','sN'].forEach(function(x){el.classList.remove(x);});
+  ['sA','sM','sS','sP','sW','sN'].forEach(function(x){el.classList.remove(x);});
   el.classList.add('s'+en.oldS); el.dataset.s=en.oldS; el.dataset.r=en.oldR;
   el.classList.remove('edited');
   var ek=el.dataset.k+'|'+el.dataset.sr+'|'+el.dataset.d+'|'+el.dataset.si;
@@ -2688,12 +2790,10 @@ window.commitCell=commitCell=function(el,s,r){
   });
 })();
 
-// pickStatus, openPicker, closePicker — use IIFE versions directly (no override needed)
+// Wrappers so attribute handlers always hit the IIFE implementations
 window.pickStatus=function(s){pickStatus(s);};
 window.openPicker=function(e,el){openPicker(e,el);};
 window.closePicker=function(){closePicker();};
-
-// toggleEdit is defined correctly in fleet_board.html (no override needed)
 
 // init -- called once when Fleet tab is first opened
 window.initFleetModule=function(){
@@ -2705,6 +2805,7 @@ window.initFleetModule=function(){
     if(typeof D!=='undefined'&&D['SCB_'+key]){mk=key; selDay=now.getDate();}
     else{mk='Mar_2026'; selDay=19;}
     if(typeof render==='function')render();
+    if(typeof n8nAutoLoad==='function') n8nAutoLoad();
   }catch(err){console.error('Fleet init:',err);}
 };
 
@@ -2914,17 +3015,23 @@ window.initFleetModule=function(){
   <div class="ln-legend">
     <div class="ln-lbl">Legend</div>
     <div class="leg"><div class="leg-sq" style="background:#92D050"></div>Available</div>
-    <div class="leg"><div class="leg-sq" style="background:#FF0000"></div>Machinery</div>
-    <div class="leg"><div class="leg-sq" style="background:#FF8C00"></div>Structural</div>
-    <div class="leg"><div class="leg-sq" style="background:#9B30FF"></div>Propeller</div>
-    <div class="leg"><div class="leg-sq" style="background:#1E90FF"></div>Payment</div>
+    <div class="leg"><div class="leg-sq" style="background:#FF0000"></div>Machinery Issues</div>
+    <div class="leg"><div class="leg-sq" style="background:#4472C4"></div>Structural Damage</div>
+    <div class="leg"><div class="leg-sq" style="background:#FF66FF"></div>Propeller Damage</div>
+    <div class="leg"><div class="leg-sq" style="background:#ED7D31"></div>Payment Delays</div>
   </div>
   <div class="ln-section">
     <div class="ln-lbl">Analytics</div>
     <button class="ln-btn" id="btn-an-scb" onclick="openAnalytics('SCB')">📊 Sea Cabbie</button>
     <button class="ln-btn" id="btn-an-sgs" onclick="openAnalytics('SGS')">📊 SG Shipping</button>
   </div>
-  <div class="ln-spacer"></div>
+  
+  <div class="ln-section" id="gdrive-section">
+    <div class="ln-lbl">Cloud Sync</div>
+    <button class="ln-btn" onclick="n8nLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
+    <div id="gdrive-status" style="font-size:9.5px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
+  </div>
+<div class="ln-spacer"></div>
   <div class="ln-paintinfo" id="pb-count"></div>
 </div>
 
@@ -2960,10 +3067,10 @@ window.initFleetModule=function(){
     <div id="sp-options" style="display:none">
       <div class="sp-lbl">Select status</div>
       <div class="sp-row" id="spA" onclick="pickStatus('A')"><div class="sp-swatch" style="background:#92D050"></div>Available</div>
-      <div class="sp-row" id="spM" onclick="pickStatus('M')"><div class="sp-swatch" style="background:#FF0000"></div>Machinery issue</div>
-      <div class="sp-row" id="spS" onclick="pickStatus('S')"><div class="sp-swatch" style="background:#FF8C00"></div>Structural damage</div>
-      <div class="sp-row" id="spP" onclick="pickStatus('P')"><div class="sp-swatch" style="background:#9B30FF"></div>Propeller damage</div>
-      <div class="sp-row" id="spW" onclick="pickStatus('W')"><div class="sp-swatch" style="background:#1E90FF"></div>Payment delay</div>
+      <div class="sp-row" id="spM" onclick="pickStatus('M')"><div class="sp-swatch" style="background:#FF0000"></div>Machinery Issues</div>
+      <div class="sp-row" id="spS" onclick="pickStatus('S')"><div class="sp-swatch" style="background:#4472C4"></div>Structural Damage</div>
+      <div class="sp-row" id="spP" onclick="pickStatus('P')"><div class="sp-swatch" style="background:#FF66FF"></div>Propeller Damage</div>
+      <div class="sp-row" id="spW" onclick="pickStatus('W')"><div class="sp-swatch" style="background:#ED7D31"></div>Payment Delays</div>
       <div class="sp-row" id="spN" onclick="pickStatus('N')"><div class="sp-swatch" style="background:#e8eaee;border:1.5px solid #8892b8"></div>Revert (clear)</div>
       <div class="sp-div"></div>
       <div class="sp-reason">
@@ -3080,5 +3187,99 @@ window.initFleetModule=function(){
   </div>
 </div>
 
+
+<script>
+// ── NIRIX FLEET BOARD — n8n / Google Drive Sync ──────────────────────────────
+// Calls n8n webhooks to save/load fleet data to Google Drive.
+// No OAuth, no popup — credentials stay in n8n.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const N8N_BASE    = 'https://abnv5.app.n8n.cloud/webhook';
+const N8N_SECRET  = 'nirix2026fleet';
+const SAVE_PATH   = N8N_BASE + '/nirix-fleet-save';
+const LOAD_PATH   = N8N_BASE + '/nirix-fleet-load';
+
+// ── SAVE ─────────────────────────────────────────────────────────────────────
+
+async function n8nSave() {
+  _showSyncStatus('Saving to Drive…', 'busy');
+  try {
+    const res = await fetch(SAVE_PATH, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-nirix-secret': N8N_SECRET
+      },
+      body: JSON.stringify(D)
+    });
+    const data = await res.json();
+    if (data.ok) {
+      _showSyncStatus('✓ Saved to Drive', 'ok');
+    } else {
+      _showSyncStatus('Save failed: ' + (data.error || res.status), 'error');
+    }
+  } catch (e) {
+    _showSyncStatus('Save error: ' + e.message, 'error');
+    console.error('n8nSave error:', e);
+  }
+}
+
+// ── LOAD ─────────────────────────────────────────────────────────────────────
+
+async function n8nLoad() {
+  _showSyncStatus('Loading from Drive…', 'busy');
+  try {
+    const res = await fetch(LOAD_PATH, {
+      method: 'GET',
+      headers: { 'x-nirix-secret': N8N_SECRET }
+    });
+    if (res.status === 404) {
+      _showSyncStatus('No saved data yet', 'warn');
+      return;
+    }
+    const data = await res.json();
+    if (data.ok && data.data) {
+      // Merge loaded data into D
+      Object.assign(D, data.data);
+      // Re-render board with loaded data
+      if (typeof render === 'function') render();
+      _showSyncStatus('✓ Loaded from Drive', 'ok');
+    } else {
+      _showSyncStatus('Load failed: ' + (data.error || 'unknown'), 'error');
+    }
+  } catch (e) {
+    _showSyncStatus('Load error: ' + e.message, 'error');
+    console.error('n8nLoad error:', e);
+  }
+}
+
+// ── UI STATUS ─────────────────────────────────────────────────────────────────
+
+function _showSyncStatus(msg, type) {
+  const el = document.getElementById('gdrive-status');
+  if (!el) return;
+  const colors = { ok: '#5bc4a8', error: '#FF5555', warn: '#FF8C00', busy: '#8892b8' };
+  el.textContent = msg;
+  el.style.color = colors[type] || '#8892b8';
+  el.style.opacity = '1';
+  if (type === 'ok') {
+    setTimeout(() => { el.style.opacity = '0'; }, 3000);
+  }
+}
+
+// ── AUTO-LOAD on fleet module init ────────────────────────────────────────────
+// Called once when the Fleet tab is first opened
+
+function n8nAutoLoad() {
+  // Small delay so the board renders first, then overlays saved data
+  setTimeout(n8nLoad, 800);
+}
+
+// Expose to window
+window.n8nSave     = n8nSave;
+window.n8nLoad     = n8nLoad;
+window.n8nAutoLoad = n8nAutoLoad;
+
+</script>
 </body>
 </html>

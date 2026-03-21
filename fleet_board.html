@@ -103,9 +103,9 @@ th,td{border:1px solid var(--border);white-space:nowrap;overflow:hidden;padding:
 .cell.sc{box-shadow:inset 0 0 0 2px #1a2340;z-index:5}
 .sA{background:#92D050}
 .sM{background:#FF0000}
-.sS{background:#FF8C00}
-.sP{background:#9B30FF}
-.sW{background:#1E90FF}
+.sS{background:#4472C4}
+.sP{background:#FF66FF}
+.sW{background:#ED7D31}
 
 .sN{background:#e8eaee}
 
@@ -315,10 +315,10 @@ body.panel-open .mbar{margin-right:230px}
   <div class="ln-legend">
     <div class="ln-lbl">Legend</div>
     <div class="leg"><div class="leg-sq" style="background:#92D050"></div>Available</div>
-    <div class="leg"><div class="leg-sq" style="background:#FF0000"></div>Machinery</div>
-    <div class="leg"><div class="leg-sq" style="background:#FF8C00"></div>Structural</div>
-    <div class="leg"><div class="leg-sq" style="background:#9B30FF"></div>Propeller</div>
-    <div class="leg"><div class="leg-sq" style="background:#1E90FF"></div>Payment</div>
+    <div class="leg"><div class="leg-sq" style="background:#FF0000"></div>Machinery Issues</div>
+    <div class="leg"><div class="leg-sq" style="background:#4472C4"></div>Structural Damage</div>
+    <div class="leg"><div class="leg-sq" style="background:#FF66FF"></div>Propeller Damage</div>
+    <div class="leg"><div class="leg-sq" style="background:#ED7D31"></div>Payment Delays</div>
   </div>
   <div class="ln-section">
     <div class="ln-lbl">Analytics</div>
@@ -361,10 +361,11 @@ body.panel-open .mbar{margin-right:230px}
     <div id="sp-options" style="display:none">
       <div class="sp-lbl">Select status</div>
       <div class="sp-row" id="spA" onclick="pickStatus('A')"><div class="sp-swatch" style="background:#92D050"></div>Available</div>
-      <div class="sp-row" id="spM" onclick="pickStatus('M')"><div class="sp-swatch" style="background:#FF0000"></div>Machinery issue</div>
-      <div class="sp-row" id="spS" onclick="pickStatus('S')"><div class="sp-swatch" style="background:#FF8C00"></div>Structural damage</div>
-      <div class="sp-row" id="spP" onclick="pickStatus('P')"><div class="sp-swatch" style="background:#9B30FF"></div>Propeller damage</div>
-      <div class="sp-row" id="spW" onclick="pickStatus('W')"><div class="sp-swatch" style="background:#1E90FF"></div>Payment delay</div>
+      <div class="sp-row" id="spM" onclick="pickStatus('M')"><div class="sp-swatch" style="background:#FF0000"></div>Machinery Issues</div>
+      <div class="sp-row" id="spS" onclick="pickStatus('S')"><div class="sp-swatch" style="background:#4472C4"></div>Structural Damage</div>
+      <div class="sp-row" id="spP" onclick="pickStatus('P')"><div class="sp-swatch" style="background:#FF66FF"></div>Propeller Damage</div>
+      <div class="sp-row" id="spW" onclick="pickStatus('W')"><div class="sp-swatch" style="background:#ED7D31"></div>Payment Delays</div>
+      <div class="sp-row" id="spN" onclick="pickStatus('N')"><div class="sp-swatch" style="background:#e8eaee;border:1.5px solid #8892b8"></div>Revert (clear)</div>
       <div class="sp-div"></div>
       <div class="sp-reason">
         <div class="sp-reason-lbl">Reason / note</div>
@@ -407,9 +408,9 @@ const MO = ['Aug_2025','Sep_2025','Oct_2025','Nov_2025','Dec_2025','Jan_2026','F
 const ML = {Aug_2025:'August 2025',Sep_2025:'September 2025',Oct_2025:'October 2025',Nov_2025:'November 2025',Dec_2025:'December 2025',Jan_2026:'January 2026',Feb_2026:'February 2026',Mar_2026:'March 2026'};
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MJS = {Aug:7,Sep:8,Oct:9,Nov:10,Dec:11,Jan:0,Feb:1,Mar:2};
-const SL  = {A:'Available',M:'Machinery Issue',S:'Structural Damage',P:'Propeller Damage',W:'Payment Delay',N:'No Data'};
-const SBG = {A:'#92D050',M:'#FF0000',S:'#FF8C00',P:'#9B30FF',W:'#1E90FF',N:'#e8eaee'};
-const SFG = {A:'#2d5a1a',M:'#fff',S:'#fff',P:'#fff',W:'#fff',N:'#9ba3b8'};
+const SL  = {A:'Available',M:'Machinery Issues',S:'Structural Damage',P:'Propeller Damage',W:'Payment Delays',N:'No Data'};
+const SBG = {A:'#92D050',M:'#FF0000',S:'#4472C4',P:'#FF66FF',W:'#ED7D31',N:'#e8eaee'};
+const SFG = {A:'#2d5a1a',M:'#fff',S:'#fff',P:'#333',W:'#fff',N:'#9ba3b8'};
 const SLOTS = ['00-06','06-12','12-18','18-24'];
 
 let fleet='SCB', mk='Mar_2026', selDay=19, emode=false;
@@ -818,7 +819,7 @@ function openPicker(e,el){
   document.getElementById('sp-idle').style.display='none';
   document.getElementById('sp-options').style.display='block';
   document.getElementById('sp-footer').style.display='flex';
-  ['A','M','S','P','W'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
+  ['A','M','S','P','W','N'].forEach(s=>{const el=document.getElementById('sp'+s);if(el)el.classList.toggle('active',s===pkStatus)});
   document.getElementById('side-panel').classList.add('open');
   document.body.classList.add('panel-open');
 }
@@ -902,6 +903,9 @@ function saveAll(){
   const b=document.getElementById('btn-save');
   b.style.display='block'; b.textContent='✓ Saved!'; b.style.color='#5bc4a8';
   setTimeout(()=>{ b.style.display='none'; b.textContent='✓ Save changes'; b.style.color=''; },2000);
+  // Refresh analytics if overlay is open
+  const ov=document.getElementById('analytics-overlay');
+  if(ov && ov.classList.contains('open')) renderAnalytics();
 }
 
 function exportJSON(){
@@ -1005,7 +1009,12 @@ function renderAnalytics(){
     if(!ds) return;
     const boats = ds.boats.map(b=>{
       const cnt={A:0,M:0,S:0,P:0,W:0,N:0};
-      b.days.forEach(d=>{ const s=d.s||'N'; cnt[s]=(cnt[s]||0)+1; });
+      b.days.forEach(d=>{
+        // Overlay live EDITS (slot 1 = canonical) on top of saved D data
+        const ek=dsKey+'|'+b.sr+'|'+d.d+'|1';
+        const s=(EDITS[ek]?EDITS[ek].s:d.s)||'N';
+        cnt[s]=(cnt[s]||0)+1;
+      });
       const total = cnt.A+cnt.M+cnt.S+cnt.P+cnt.W; // exclude N
       return {name:b.name, avail:cnt.A, M:cnt.M, S:cnt.S, P:cnt.P, W:cnt.W, total};
     });
@@ -1123,13 +1132,6 @@ function renderAnalytics(){
         <div class="an-card">
           <div class="an-card-title">Availability per Boat — <span id="an-sel-month-lbl">${selML}</span></div>
           <div id="an-boat-bars"></div>
-          <div class="an-bar-legend" style="margin-top:12px">
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#92D050"></div>Available</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#FF0000"></div>Machinery</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#FF8C00"></div>Structural</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#9B30FF"></div>Propeller</div>
-            <div class="an-bar-legend-item"><div class="an-bar-legend-dot" style="background:#1E90FF"></div>Payment</div>
-                      </div>
         </div>
         <div class="an-card">
           <div class="an-card-title">Combined Downtime Breakdown (All Months)</div>
@@ -1195,7 +1197,7 @@ function renderBoatBars(md, isScb){
   }).join('');
 
   const SEGS=[
-    {k:'avail',c:'#6abf45'},{k:'M',c:'#cc1414'},{k:'S',c:'#c96e00'},{k:'P',c:'#6b1b99'},{k:'W',c:'#0a5c96'},
+    {k:'avail',c:'#92D050'},{k:'M',c:'#FF0000'},{k:'S',c:'#4472C4'},{k:'P',c:'#FF66FF'},{k:'W',c:'#ED7D31'},
   ];
 
   const bars=boats.map(function(b,i){
@@ -1218,8 +1220,8 @@ function renderBoatBars(md, isScb){
   }).join('');
 
   const legendItems=[
-    {c:'#92D050',l:'Operational'},{c:'#FF3333',l:'Machinery'},
-    {c:'#FF8C00',l:'Structural'},{c:'#9B30FF',l:'Propeller'},{c:'#1E90FF',l:'Payment'},
+    {c:'#92D050',l:'Available'},{c:'#FF0000',l:'Machinery Issues'},
+    {c:'#4472C4',l:'Structural Damage'},{c:'#FF66FF',l:'Propeller Damage'},{c:'#ED7D31',l:'Payment Delays'},
   ];
   const legend=legendItems.map(function(x){
     return '<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6a7498">'+
@@ -1284,9 +1286,9 @@ function drawPieChart(cats, total){
     ctx.parentElement.innerHTML='<p style="color:#5a6278;text-align:center;padding:40px 0">No downtime recorded</p>';
     return;
   }
-  const labels=['Machinery','Structural','Propeller','Payment Delay'];
+  const labels=['Machinery Issues','Structural Damage','Propeller Damage','Payment Delays'];
   const vals=[cats.M,cats.S,cats.P,cats.W];
-  const colors=['#FF4444','#FF8C00','#9B30FF','#1E90FF'];
+  const colors=['#FF0000','#4472C4','#FF66FF','#ED7D31'];
   const filtered = labels.map((l,i)=>({l,v:vals[i],c:colors[i]})).filter(x=>x.v>0);
   const ch=new Chart(ctx,{
     type:'doughnut',
