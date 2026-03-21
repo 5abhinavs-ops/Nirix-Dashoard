@@ -1016,8 +1016,8 @@ function renderAnalytics(){
       const cnt={A:0,M:0,S:0,P:0,W:0,N:0};
       b.days.forEach(d=>{
         // Overlay live EDITS (slot 1 = canonical) on top of saved D data
-        const ek=dsKey+'|'+b.sr+'|'+d.d+'|1';
-        const s=(EDITS[ek]?EDITS[ek].s:d.s)||'N';
+        const ekAny=[0,1,2,3].map(si=>dsKey+'|'+b.sr+'|'+d.d+'|'+si).find(k=>EDITS[k]);
+        const s=(ekAny&&EDITS[ekAny]?EDITS[ekAny].s:d.s)||'N';
         cnt[s]=(cnt[s]||0)+1;
       });
       const total = cnt.A+cnt.M+cnt.S+cnt.P+cnt.W; // exclude N
