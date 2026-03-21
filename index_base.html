@@ -2935,12 +2935,12 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 .ln-card-wrap{position:relative;z-index:10;width:100%;max-width:440px;padding:0 24px;animation:ln-float 6s ease-in-out infinite;}
 @keyframes ln-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
 .ln-card-shell{position:relative;}
-.ln-corner{position:absolute;width:30px;height:30px;border:2px solid transparent;pointer-events:none;z-index:25;transition:width 0.3s ease,height 0.3s ease,box-shadow 0.3s ease;}
-.ln-card-shell:hover .ln-corner{width:40px;height:40px;box-shadow:inset 0 0 15px rgba(0,240,255,0.2);}
-.ln-corner.tl{top:-2px;left:-2px;border-top-color:#00f0ff;border-left-color:#00f0ff}
-.ln-corner.tr{top:-2px;right:-2px;border-top-color:#00f0ff;border-right-color:#00f0ff}
-.ln-corner.bl{bottom:-2px;left:-2px;border-bottom-color:#00f0ff;border-left-color:#00f0ff}
-.ln-corner.br{bottom:-2px;right:-2px;border-bottom-color:#00f0ff;border-right-color:#00f0ff}
+
+
+
+
+
+
 .ln-card{position:relative;background:rgba(6,15,30,0.8);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);padding:48px;box-shadow:0 0 60px rgba(0,0,0,0.8);overflow:hidden;transition:border-color 0.5s,box-shadow 0.5s;}
 .ln-card-shell:hover .ln-card{border-color:rgba(0,240,255,0.3);box-shadow:0 0 80px rgba(0,240,255,0.15);}
 .ln-scan-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5;}
@@ -3005,10 +3005,6 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
   </div>
   <div class="ln-card-wrap">
     <div class="ln-card-shell">
-      <div class="ln-corner tl"></div>
-      <div class="ln-corner tr"></div>
-      <div class="ln-corner bl"></div>
-      <div class="ln-corner br"></div>
       <div class="ln-card">
         <div class="ln-scan-wrap"><div class="ln-scan-bar"></div></div>
         <header class="ln-header-zone">
