@@ -554,11 +554,7 @@ window.initFleetModule=function(){
   </div>'''
         idx = idx.replace('<div class="ln-spacer"></div>', sync_ui + '\n<div class="ln-spacer"></div>')
 
-        # 3. Hook saveAll to also call n8nSave after committing to D
-        idx = idx.replace(
-            "b.style.display='block'; b.textContent='\u2713 Saved!'; b.style.color='#5bc4a8';",
-            "b.style.display='block'; b.textContent='\u2713 Saved!'; b.style.color='#5bc4a8';\n  if(typeof n8nSave==='function') n8nSave();"
-        )
+        # 3. n8nSave is chained inside fleet_board.html saveAll() after the Saved! line.
 
         # 4. Hook initFleetModule to auto-load from Drive on first open
         idx = idx.replace(
