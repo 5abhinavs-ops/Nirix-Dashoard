@@ -4388,6 +4388,8 @@ function drawPieChart(cats, total){
 }
 // ── END ANALYTICS ─────────────────────────────────────────────────────────
 
+window.D = D;
+
 
 
 // Expose to window — direct assignments only (no eval); same IIFE closures as inline handlers
@@ -5049,7 +5051,7 @@ async function n8nSave() {
         'Content-Type': 'application/json',
         'x-nirix-secret': N8N_SECRET
       },
-      body: JSON.stringify(D)
+      body: JSON.stringify(window.D || D)
     });
     const data = await res.json();
     if (data.ok) {
@@ -5079,7 +5081,9 @@ async function n8nLoad() {
     const data = await res.json();
     if (data.ok && data.data) {
       // Merge loaded data into D
-      Object.assign(D, data.data);
+      const _D = window.D || D;
+      Object.assign(_D, data.data);
+      if (window.D) window.D = _D;
       // Re-render board with loaded data
       if (typeof render === 'function') render();
       _showSyncStatus('✓ Loaded from Drive', 'ok');
