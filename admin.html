@@ -143,6 +143,11 @@
       cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600;
     }
     .admin-tab.active { background: #0D2A3A; color: #FFF; border-color: #0D9AAA; }
+    .ac-subtab {
+      padding: 8px 14px; background: #0A1628; border: 1px solid #1E3A5F; border-radius: 6px; color: #8AA8C0;
+      cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600;
+    }
+    .ac-subtab.active { background: #0D2A3A; color: #FFF; border-color: #0D9AAA; }
     #perm-modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000;
       align-items: center; justify-content: center; padding: 20px;
@@ -451,9 +456,9 @@
 
       <div id="panel-alertconfig" class="admin-panel" style="display:none">
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">
-          <button type="button" class="admin-tab active" data-actab="ac-daily" onclick="switchAlertTab('ac-daily')">Daily Report Alert Parameters</button>
-          <button type="button" class="admin-tab" data-actab="ac-runhrs" onclick="switchAlertTab('ac-runhrs')">Engine Running Hrs Alerts</button>
-          <button type="button" class="admin-tab" data-actab="ac-certs" onclick="switchAlertTab('ac-certs')">Certificate Band &amp; Visibility</button>
+          <button type="button" class="ac-subtab active" data-actab="ac-daily" onclick="event.stopPropagation();switchAlertTab('ac-daily')">Daily Report Alert Parameters</button>
+          <button type="button" class="ac-subtab" data-actab="ac-runhrs" onclick="event.stopPropagation();switchAlertTab('ac-runhrs')">Engine Running Hrs Alerts</button>
+          <button type="button" class="ac-subtab" data-actab="ac-certs" onclick="event.stopPropagation();switchAlertTab('ac-certs')">Certificate Band &amp; Visibility</button>
         </div>
 
         <!-- TAB 1: Daily Report Alert Parameters -->
@@ -1162,7 +1167,7 @@
         var pane = document.getElementById(paneId);
         if (pane) pane.style.display = paneId === id ? 'block' : 'none';
       });
-      document.querySelectorAll('#panel-alertconfig > div:first-child .admin-tab').forEach(function (btn) {
+      document.querySelectorAll('.ac-subtab').forEach(function (btn) {
         btn.classList.toggle('active', btn.dataset.actab === id);
       });
     }
