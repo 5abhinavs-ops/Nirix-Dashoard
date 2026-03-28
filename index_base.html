@@ -476,25 +476,36 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 
     function collectAlerts(r){
       if(!r)return [];
+      var da=window._alertConfig&&window._alertConfig.dailyAlerts;
+      var tg=da&&da.toggles||{};
+      var th=da&&da.thresholds||{};
+      var on=function(k){return tg[k]!==false;};
+      var tv=function(k,side){var o=th[k];return o&&typeof o[side]==='number'?o[side]:null;};
       const a=[];
-      if(r['Port Oil Level']&&r['Port Oil Level']!=='OK')a.push(`Port Oil ${r['Port Oil Level']}`);
-      if(r['Port Oil Temp Status']==='High')a.push(`Port Oil Temp HIGH (${r['Port Oil Temp C']}°C)`);
-      if(r['Port Coolant Level']&&r['Port Coolant Level']!=='OK')a.push(`Port Coolant ${r['Port Coolant Level']}`);
-      if(parseFloat(r['Port Coolant Temp C'])>=90)a.push(`Port Coolant Temp ${r['Port Coolant Temp C']}°C`);
-      if(r['Port Smoke']&&r['Port Smoke']!=='No Smoke')a.push(`Port Smoke: ${r['Port Smoke']}`);
-      if(r['Port LO Leak']==='Yes')a.push('Port LO Leak');
-      if(r['Port FO Leak']==='Yes')a.push('Port FO Leak');
-      if(r['Port Gearbox Oil']==='LOW')a.push('Port Gearbox Oil LOW');
-      if(r['Stbd Oil Level']&&r['Stbd Oil Level']!=='OK')a.push(`Stbd Oil ${r['Stbd Oil Level']}`);
-      if(r['Stbd Oil Temp Status']==='High')a.push(`Stbd Oil Temp HIGH (${r['Stbd Oil Temp C']}°C)`);
-      if(r['Stbd Coolant Level']&&r['Stbd Coolant Level']!=='OK')a.push(`Stbd Coolant ${r['Stbd Coolant Level']}`);
-      if(parseFloat(r['Stbd Coolant Temp C'])>=90)a.push(`Stbd Coolant Temp ${r['Stbd Coolant Temp C']}°C`);
-      if(r['Stbd Smoke']&&r['Stbd Smoke']!=='No Smoke')a.push(`Stbd Smoke: ${r['Stbd Smoke']}`);
-      if(r['Stbd LO Leak']==='Yes')a.push('Stbd LO Leak');
-      if(r['Stbd FO Leak']==='Yes')a.push('Stbd FO Leak');
-      if(r['Stbd Gearbox Oil']==='LOW')a.push('Stbd Gearbox Oil LOW');
-      if(r['Bilge Status']==='Water')a.push('Bilge WATER');
-      if(r['Bilge Pump']==='Not Working')a.push('Bilge Pump DOWN');
+      if(on('portOilLevel')&&r['Port Oil Level']&&r['Port Oil Level']!=='OK')a.push(`Port Oil ${r['Port Oil Level']}`);
+      var potThresh=tv('oilTemp','port');
+      if(potThresh!==null){if(parseFloat(r['Port Oil Temp C'])>=potThresh)a.push(`Port Oil Temp HIGH (${r['Port Oil Temp C']}°C)`);}
+      else{if(r['Port Oil Temp Status']==='High')a.push(`Port Oil Temp HIGH (${r['Port Oil Temp C']}°C)`);}
+      if(on('portCoolantLevel')&&r['Port Coolant Level']&&r['Port Coolant Level']!=='OK')a.push(`Port Coolant ${r['Port Coolant Level']}`);
+      var pctThresh=tv('coolantTemp','port');
+      if(parseFloat(r['Port Coolant Temp C'])>=(pctThresh!==null?pctThresh:90))a.push(`Port Coolant Temp ${r['Port Coolant Temp C']}°C`);
+      if(on('portSmoke')&&r['Port Smoke']&&r['Port Smoke']!=='No Smoke')a.push(`Port Smoke: ${r['Port Smoke']}`);
+      if(on('portLOLeak')&&r['Port LO Leak']==='Yes')a.push('Port LO Leak');
+      if(on('portFOLeak')&&r['Port FO Leak']==='Yes')a.push('Port FO Leak');
+      if(on('portGearboxOil')&&r['Port Gearbox Oil']==='LOW')a.push('Port Gearbox Oil LOW');
+      if(on('stbdOilLevel')&&r['Stbd Oil Level']&&r['Stbd Oil Level']!=='OK')a.push(`Stbd Oil ${r['Stbd Oil Level']}`);
+      var sotThresh=tv('oilTemp','stbd');
+      if(sotThresh!==null){if(parseFloat(r['Stbd Oil Temp C'])>=sotThresh)a.push(`Stbd Oil Temp HIGH (${r['Stbd Oil Temp C']}°C)`);}
+      else{if(r['Stbd Oil Temp Status']==='High')a.push(`Stbd Oil Temp HIGH (${r['Stbd Oil Temp C']}°C)`);}
+      if(on('stbdCoolantLevel')&&r['Stbd Coolant Level']&&r['Stbd Coolant Level']!=='OK')a.push(`Stbd Coolant ${r['Stbd Coolant Level']}`);
+      var sctThresh=tv('coolantTemp','stbd');
+      if(parseFloat(r['Stbd Coolant Temp C'])>=(sctThresh!==null?sctThresh:90))a.push(`Stbd Coolant Temp ${r['Stbd Coolant Temp C']}°C`);
+      if(on('stbdSmoke')&&r['Stbd Smoke']&&r['Stbd Smoke']!=='No Smoke')a.push(`Stbd Smoke: ${r['Stbd Smoke']}`);
+      if(on('stbdLOLeak')&&r['Stbd LO Leak']==='Yes')a.push('Stbd LO Leak');
+      if(on('stbdFOLeak')&&r['Stbd FO Leak']==='Yes')a.push('Stbd FO Leak');
+      if(on('stbdGearboxOil')&&r['Stbd Gearbox Oil']==='LOW')a.push('Stbd Gearbox Oil LOW');
+      if(on('bilgeStatus')&&r['Bilge Status']==='Water')a.push('Bilge WATER');
+      if(on('bilgePump')&&r['Bilge Pump']==='Not Working')a.push('Bilge Pump DOWN');
       return a;
     }
     function boatStatus(boat,dateStr){
@@ -502,7 +513,11 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       if(!row)return 'missing';
       const alerts=collectAlerts(row);
       if(!alerts.length)return 'ok';
-      const hasCH=parseFloat(row['Port Coolant Temp C'])>=90||parseFloat(row['Stbd Coolant Temp C'])>=90;
+      var da=window._alertConfig&&window._alertConfig.dailyAlerts;
+      var th=da&&da.thresholds||{};
+      var pct=th.coolantTemp&&typeof th.coolantTemp.port==='number'?th.coolantTemp.port:90;
+      var sct=th.coolantTemp&&typeof th.coolantTemp.stbd==='number'?th.coolantTemp.stbd:90;
+      const hasCH=parseFloat(row['Port Coolant Temp C'])>=pct||parseFloat(row['Stbd Coolant Temp C'])>=sct;
       const hasOL=(row['Port Oil Level']&&row['Port Oil Level']!=='OK')||(row['Stbd Oil Level']&&row['Stbd Oil Level']!=='OK');
       if(hasCH||(hasOL&&row['Bilge Status']==='Water'))return 'critical';
       return 'alert';
@@ -1794,6 +1809,18 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       }
     }
 
+    function isCertTabVisible(boat,tabKey){
+      var ct=window._alertConfig&&window._alertConfig.certTypes;
+      if(!ct)return true;
+      var isSC=(SC_BOATS||[]).indexOf(boat)!==-1;
+      var co=isSC?'Sea Cabbie':'SG Shipping';
+      var cc=ct.companies&&ct.companies[co];
+      if(cc&&cc[tabKey]===false)return false;
+      var bb=ct.boats&&ct.boats[boat];
+      if(bb&&bb[tabKey]===false)return false;
+      return true;
+    }
+
     function certSelectBoat(boat, el){
       certActiveBoat=boat;
       document.querySelectorAll('.cert-boat-item').forEach(x=>x.classList.remove('active'));
@@ -1801,14 +1828,23 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       document.getElementById('certs-boat-title').textContent=boat;
       document.getElementById('cert-panel-compliance').style.display='none';
       document.getElementById('cert-subtabs').style.display='flex';
-      certSwitchTab(certActiveTab);
+      var visibleTabs=[];
+      ['class','hcl','radio','insurance'].forEach(function(t){
+        var vis=isCertTabVisible(boat,t);
+        document.getElementById('ctab-'+t).style.display=vis?'':'none';
+        if(vis)visibleTabs.push(t);
+      });
+      var target=visibleTabs.indexOf(certActiveTab)!==-1?certActiveTab:(visibleTabs[0]||'class');
+      certSwitchTab(target);
     }
 
     function certSwitchTab(tab){
       certActiveTab=tab;
       ['class','hcl','radio','insurance'].forEach(t=>{
+        var vis=!certActiveBoat||isCertTabVisible(certActiveBoat,t);
+        document.getElementById('ctab-'+t).style.display=vis?'':'none';
         document.getElementById('ctab-'+t).classList.toggle('on',t===tab);
-        document.getElementById('cert-panel-'+t).style.display=t===tab?'block':'none';
+        document.getElementById('cert-panel-'+t).style.display=(t===tab&&vis)?'block':'none';
       });
       if(!certActiveBoat) return;
       const data=CERT_WORKING[certActiveBoat]; if(!data) return;

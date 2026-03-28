@@ -475,18 +475,6 @@
           </table>
           <div id="ac-company-msg" class="msg"></div>
 
-          <h3 style="font-size:13px;color:#8AA8C0;margin:20px 0 8px">Per-Boat Overrides</h3>
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead><tr>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Boat</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Company</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Alert</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Override Threshold</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Actions</th>
-            </tr></thead>
-            <tbody id="ac-boat-tbody"></tbody>
-          </table>
-          <div id="ac-boat-msg" class="msg"></div>
         </div>
 
         <div class="panel" style="margin-top:18px">
@@ -529,6 +517,60 @@
             <button type="button" class="btn" onclick="saveCertBands()">Save Band Settings</button>
           </div>
           <div id="ac-cert-msg" class="msg"></div>
+        </div>
+
+        <div class="panel" style="margin-top:18px">
+          <h2>DAILY REPORTS ALERT PARAMETERS</h2>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:12px">Toggle alerts on/off and set numeric thresholds. Alert fires when reading exceeds the set value.</p>
+
+          <h3 style="font-size:11px;color:#8AA8C0;margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.08em">On / Off Toggles</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Parameter</th>
+              <th style="text-align:center;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Enabled</th>
+            </tr></thead>
+            <tbody id="da-toggles-tbody"></tbody>
+          </table>
+
+          <h3 style="font-size:11px;color:#8AA8C0;margin:16px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Numeric Thresholds</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Parameter</th>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Port Threshold</th>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Stbd Threshold</th>
+            </tr></thead>
+            <tbody id="da-thresholds-tbody"></tbody>
+          </table>
+
+          <div style="margin-top:12px">
+            <button type="button" class="btn" onclick="saveDailyAlerts()">Save Daily Alert Settings</button>
+          </div>
+          <div id="ac-daily-msg" class="msg"></div>
+        </div>
+
+        <div class="panel" style="margin-top:18px">
+          <h2>CERT TYPES VISIBILITY</h2>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:12px">Company-level off hides cert tab for all boats. Per-boat overrides within an enabled company.</p>
+
+          <h3 style="font-size:11px;color:#8AA8C0;margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Per Company</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Company</th>
+              <th style="text-align:center;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Class Cert</th>
+              <th style="text-align:center;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">HCL</th>
+              <th style="text-align:center;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Radio & LSA FFE</th>
+              <th style="text-align:center;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Insurance</th>
+            </tr></thead>
+            <tbody id="ct-company-tbody"></tbody>
+          </table>
+
+          <h3 style="font-size:11px;color:#8AA8C0;margin:16px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Per Boat</h3>
+          <div id="ct-boat-section"></div>
+
+          <div style="margin-top:12px">
+            <button type="button" class="btn" onclick="saveCertTypes()">Save Cert Types</button>
+          </div>
+          <div id="ac-certtype-msg" class="msg"></div>
         </div>
       </div>
     </main>
@@ -1049,33 +1091,155 @@
       setTimeout(function () { el.textContent = ''; el.className = 'msg'; }, 4000);
     }
 
-    function renderBoatOverrideRows() {
-      var tbody = document.getElementById('ac-boat-tbody');
-      if (!tbody) return;
-      var html = '';
-      var allBoats = [].concat(
-        SEA_CABBIE_BOATS.map(function (b) { return { name: b, company: 'Sea Cabbie' }; }),
-        SG_SHIPPING_BOATS.map(function (b) { return { name: b, company: 'SG Shipping' }; })
-      );
-      var overrides = (_acData && _acData.engineRunHrs && _acData.engineRunHrs.boatOverrides) || {};
-      var defaults = (_acData && _acData.engineRunHrs && _acData.engineRunHrs.companyDefaults) || {};
-      allBoats.forEach(function (boat) {
-        var ov = overrides[boat.name] || {};
-        var disabled = ov.disabled === true;
-        var hasOv = typeof ov.threshold === 'number';
-        var defVal = defaults[boat.company] || '';
-        var placeholder = defVal ? defVal + ' (company)' : '';
-        html += '<tr data-boat="' + boat.name + '">' +
-          '<td style="padding:6px 10px;color:#FFF">' + boat.name + '</td>' +
-          '<td style="padding:6px 10px;color:#8AA8C0">' + boat.company + '</td>' +
-          '<td style="padding:6px 10px"><button type="button" class="btn" style="font-size:11px;padding:4px 10px" onclick="toggleBoatAlert(\'' + boat.name.replace(/'/g, "\\'") + '\')">' + (disabled ? 'OFF' : 'ON') + '</button></td>' +
-          '<td style="padding:6px 10px"><input type="number" class="ac-boat-thresh" data-boat="' + boat.name + '" min="1" max="99" value="' + (hasOv ? ov.threshold : '') + '" placeholder="' + placeholder + '" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:5px 8px;font-family:inherit;font-size:12px" /></td>' +
-          '<td style="padding:6px 10px;display:flex;gap:6px">' +
-            '<button type="button" class="btn" style="font-size:11px;padding:4px 10px" onclick="saveBoatOverride(\'' + boat.name.replace(/'/g, "\\'") + '\')">Save</button>' +
-            '<button type="button" class="btn" style="font-size:11px;padding:4px 10px;background:#1A0A0A;border-color:#5A2020;color:#E05A5A" onclick="resetBoatOverride(\'' + boat.name.replace(/'/g, "\\'") + '\')">Reset</button>' +
-          '</td></tr>';
+    // ── DAILY ALERTS CONFIG ────────────────────────────────
+    var DA_TOGGLES = [
+      {key:'portOilLevel',    label:'Port Oil Level'},
+      {key:'stbdOilLevel',    label:'Stbd Oil Level'},
+      {key:'portCoolantLevel',label:'Port Coolant Level'},
+      {key:'stbdCoolantLevel',label:'Stbd Coolant Level'},
+      {key:'portSmoke',       label:'Port Smoke'},
+      {key:'stbdSmoke',       label:'Stbd Smoke'},
+      {key:'portLOLeak',      label:'Port LO Leak'},
+      {key:'stbdLOLeak',      label:'Stbd LO Leak'},
+      {key:'portFOLeak',      label:'Port FO Leak'},
+      {key:'stbdFOLeak',      label:'Stbd FO Leak'},
+      {key:'portGearboxOil',  label:'Port Gearbox Oil'},
+      {key:'stbdGearboxOil',  label:'Stbd Gearbox Oil'},
+      {key:'bilgeStatus',     label:'Bilge Status'},
+      {key:'bilgePump',       label:'Bilge Pump'}
+    ];
+    var DA_THRESHOLDS = [
+      {key:'oilTemp',     label:'Engine Oil Temp (°C)',  defPort:null, defStbd:null},
+      {key:'coolantTemp', label:'Coolant Temp (°C)',     defPort:90,   defStbd:90},
+      {key:'oilPressure', label:'Oil Pressure (bar)',    defPort:null, defStbd:null},
+      {key:'batteryV',    label:'Battery Voltage (V)',   defPort:null, defStbd:null}
+    ];
+
+    function renderDailyAlertsUI() {
+      var da = (_acData && _acData.dailyAlerts) || {};
+      var toggles = da.toggles || {};
+      var thresholds = da.thresholds || {};
+      var tb1 = document.getElementById('da-toggles-tbody');
+      if (tb1) {
+        var h = '';
+        DA_TOGGLES.forEach(function (t) {
+          var on = toggles[t.key] !== false;
+          h += '<tr><td style="padding:6px 10px;color:#FFF">' + t.label + '</td>' +
+            '<td style="text-align:center;padding:6px 10px"><input type="checkbox" class="da-toggle" data-key="' + t.key + '"' + (on ? ' checked' : '') + ' /></td></tr>';
+        });
+        tb1.innerHTML = h;
+      }
+      var tb2 = document.getElementById('da-thresholds-tbody');
+      if (tb2) {
+        var h2 = '';
+        DA_THRESHOLDS.forEach(function (t) {
+          var th = thresholds[t.key] || {};
+          var pVal = typeof th.port === 'number' ? th.port : (t.defPort !== null ? t.defPort : '');
+          var sVal = typeof th.stbd === 'number' ? th.stbd : (t.defStbd !== null ? t.defStbd : '');
+          h2 += '<tr><td style="padding:6px 10px;color:#FFF">' + t.label + '</td>' +
+            '<td style="padding:6px 10px"><input type="number" class="da-thresh-port" data-key="' + t.key + '" value="' + pVal + '" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:5px 8px;font-family:inherit;font-size:12px" /></td>' +
+            '<td style="padding:6px 10px"><input type="number" class="da-thresh-stbd" data-key="' + t.key + '" value="' + sVal + '" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:5px 8px;font-family:inherit;font-size:12px" /></td></tr>';
+        });
+        tb2.innerHTML = h2;
+      }
+    }
+
+    async function saveDailyAlerts() {
+      var toggles = {};
+      document.querySelectorAll('.da-toggle').forEach(function (cb) {
+        toggles[cb.dataset.key] = cb.checked;
       });
-      tbody.innerHTML = html;
+      var thresholds = {};
+      DA_THRESHOLDS.forEach(function (t) {
+        var pInp = document.querySelector('.da-thresh-port[data-key="' + t.key + '"]');
+        var sInp = document.querySelector('.da-thresh-stbd[data-key="' + t.key + '"]');
+        var obj = {};
+        if (pInp && pInp.value !== '') obj.port = parseFloat(pInp.value);
+        if (sInp && sInp.value !== '') obj.stbd = parseFloat(sInp.value);
+        if (obj.port !== undefined || obj.stbd !== undefined) thresholds[t.key] = obj;
+      });
+      try {
+        await ALERT_CFG_DOC().set({ dailyAlerts: { toggles: toggles, thresholds: thresholds } }, { merge: true });
+        if (!_acData) _acData = {};
+        _acData.dailyAlerts = { toggles: toggles, thresholds: thresholds };
+        acMsg('ac-daily-msg', 'Daily alert settings saved.', true);
+      } catch (e) {
+        acMsg('ac-daily-msg', 'Save failed: ' + e.message, false);
+      }
+    }
+
+    // ── CERT TYPES CONFIG ────────────────────────────────────
+    var CERT_TYPE_KEYS = ['class','hcl','radio','insurance'];
+    var CERT_TYPE_LABELS = {class:'Class Certification',hcl:'HCL',radio:'Radio & LSA FFE',insurance:'Insurance'};
+    var COMPANY_MAP = {'Sea Cabbie': SEA_CABBIE_BOATS, 'SG Shipping': SG_SHIPPING_BOATS};
+
+    function renderCertTypesUI() {
+      var ct = (_acData && _acData.certTypes) || {};
+      var companies = ct.companies || {};
+      var boats = ct.boats || {};
+
+      var tb = document.getElementById('ct-company-tbody');
+      if (tb) {
+        var h = '';
+        ['Sea Cabbie','SG Shipping'].forEach(function (co) {
+          var cc = companies[co] || {};
+          h += '<tr><td style="padding:6px 10px;color:#FFF">' + co + '</td>';
+          CERT_TYPE_KEYS.forEach(function (k) {
+            var on = cc[k] !== false;
+            h += '<td style="text-align:center;padding:6px 10px"><input type="checkbox" class="ct-co" data-co="' + co + '" data-key="' + k + '"' + (on ? ' checked' : '') + ' /></td>';
+          });
+          h += '</tr>';
+        });
+        tb.innerHTML = h;
+      }
+
+      var sec = document.getElementById('ct-boat-section');
+      if (sec) {
+        var h2 = '';
+        ['Sea Cabbie','SG Shipping'].forEach(function (co) {
+          h2 += '<div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:#8AA8C0;padding:8px 0;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">' + co + ' ▸</div>';
+          h2 += '<div style="display:none"><table style="width:100%;border-collapse:collapse;font-size:11px">';
+          h2 += '<thead><tr><th style="text-align:left;padding:4px 8px;color:#8AA8C0;border-bottom:1px solid #1E3A5F;font-size:10px">Boat</th>';
+          CERT_TYPE_KEYS.forEach(function (k) {
+            h2 += '<th style="text-align:center;padding:4px 8px;color:#8AA8C0;border-bottom:1px solid #1E3A5F;font-size:10px">' + CERT_TYPE_LABELS[k] + '</th>';
+          });
+          h2 += '</tr></thead><tbody>';
+          COMPANY_MAP[co].forEach(function (boat) {
+            var bb = boats[boat] || {};
+            h2 += '<tr><td style="padding:4px 8px;color:#FFF">' + boat + '</td>';
+            CERT_TYPE_KEYS.forEach(function (k) {
+              var on = bb[k] !== false;
+              h2 += '<td style="text-align:center;padding:4px 8px"><input type="checkbox" class="ct-boat" data-boat="' + boat + '" data-key="' + k + '"' + (on ? ' checked' : '') + ' /></td>';
+            });
+            h2 += '</tr>';
+          });
+          h2 += '</tbody></table></div></div>';
+        });
+        sec.innerHTML = h2;
+      }
+    }
+
+    async function saveCertTypes() {
+      var companies = {};
+      document.querySelectorAll('.ct-co').forEach(function (cb) {
+        var co = cb.dataset.co;
+        if (!companies[co]) companies[co] = {};
+        companies[co][cb.dataset.key] = cb.checked;
+      });
+      var boats = {};
+      document.querySelectorAll('.ct-boat').forEach(function (cb) {
+        var boat = cb.dataset.boat;
+        if (!boats[boat]) boats[boat] = {};
+        boats[boat][cb.dataset.key] = cb.checked;
+      });
+      try {
+        await ALERT_CFG_DOC().set({ certTypes: { companies: companies, boats: boats } }, { merge: true });
+        if (!_acData) _acData = {};
+        _acData.certTypes = { companies: companies, boats: boats };
+        acMsg('ac-certtype-msg', 'Cert type settings saved.', true);
+      } catch (e) {
+        acMsg('ac-certtype-msg', 'Save failed: ' + e.message, false);
+      }
     }
 
     async function loadAlertConfig() {
@@ -1100,7 +1264,8 @@
       if (b2El) b2El.value = typeof bands.band2Days === 'number' ? bands.band2Days : 30;
       if (b3El) b3El.value = typeof bands.band3Days === 'number' ? bands.band3Days : 90;
 
-      renderBoatOverrideRows();
+      renderDailyAlertsUI();
+      renderCertTypesUI();
     }
 
     async function saveCompanyDefault(company) {
@@ -1115,63 +1280,9 @@
         if (!_acData.engineRunHrs) _acData.engineRunHrs = {};
         if (!_acData.engineRunHrs.companyDefaults) _acData.engineRunHrs.companyDefaults = {};
         _acData.engineRunHrs.companyDefaults[company] = val;
-        renderBoatOverrideRows();
         acMsg('ac-company-msg', company + ' default saved.', true);
       } catch (e) {
         acMsg('ac-company-msg', 'Save failed: ' + e.message, false);
-      }
-    }
-
-    async function toggleBoatAlert(boatName) {
-      if (!_acData) _acData = {};
-      if (!_acData.engineRunHrs) _acData.engineRunHrs = {};
-      if (!_acData.engineRunHrs.boatOverrides) _acData.engineRunHrs.boatOverrides = {};
-      var ov = _acData.engineRunHrs.boatOverrides[boatName] || {};
-      ov.disabled = !ov.disabled;
-      _acData.engineRunHrs.boatOverrides[boatName] = ov;
-      try {
-        var update = {};
-        update['engineRunHrs.boatOverrides.' + boatName + '.disabled'] = ov.disabled;
-        await ALERT_CFG_DOC().set(update, { merge: true });
-        renderBoatOverrideRows();
-        acMsg('ac-boat-msg', boatName + ' alert ' + (ov.disabled ? 'disabled' : 'enabled') + '.', true);
-      } catch (e) {
-        acMsg('ac-boat-msg', 'Toggle failed: ' + e.message, false);
-      }
-    }
-
-    async function saveBoatOverride(boatName) {
-      var inp = document.querySelector('.ac-boat-thresh[data-boat="' + boatName + '"]');
-      if (!inp) return;
-      var val = parseInt(inp.value, 10);
-      if (!val || val < 1) { acMsg('ac-boat-msg', 'Enter a positive number for ' + boatName + '.', false); return; }
-      try {
-        var update = {};
-        update['engineRunHrs.boatOverrides.' + boatName + '.threshold'] = val;
-        await ALERT_CFG_DOC().set(update, { merge: true });
-        if (!_acData) _acData = {};
-        if (!_acData.engineRunHrs) _acData.engineRunHrs = {};
-        if (!_acData.engineRunHrs.boatOverrides) _acData.engineRunHrs.boatOverrides = {};
-        if (!_acData.engineRunHrs.boatOverrides[boatName]) _acData.engineRunHrs.boatOverrides[boatName] = {};
-        _acData.engineRunHrs.boatOverrides[boatName].threshold = val;
-        acMsg('ac-boat-msg', boatName + ' override saved.', true);
-      } catch (e) {
-        acMsg('ac-boat-msg', 'Save failed: ' + e.message, false);
-      }
-    }
-
-    async function resetBoatOverride(boatName) {
-      try {
-        var update = {};
-        update['engineRunHrs.boatOverrides.' + boatName] = firebase.firestore.FieldValue.delete();
-        await ALERT_CFG_DOC().update(update);
-        if (_acData && _acData.engineRunHrs && _acData.engineRunHrs.boatOverrides) {
-          delete _acData.engineRunHrs.boatOverrides[boatName];
-        }
-        renderBoatOverrideRows();
-        acMsg('ac-boat-msg', boatName + ' override cleared.', true);
-      } catch (e) {
-        acMsg('ac-boat-msg', 'Reset failed: ' + e.message, false);
       }
     }
 
