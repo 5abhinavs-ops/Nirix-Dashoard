@@ -362,6 +362,22 @@
           </div>
           <div id="settings-msg" class="msg"></div>
         </div>
+
+        <div class="panel" style="margin-top:18px">
+          <h2>Dashboard Theme</h2>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:8px">
+            <label style="font-size:12px;color:#8AA8C0;display:flex;align-items:center;gap:8px">
+              Theme
+              <select id="set-theme" style="width:200px">
+                <option value="ocean-dark">Ocean Dark</option>
+                <option value="scifi-grid">Sci-Fi Grid</option>
+                <option value="cyber-indigo">Cyber Indigo</option>
+              </select>
+            </label>
+            <button type="button" class="btn" onclick="saveThemeSetting()">Save</button>
+          </div>
+          <div id="theme-msg" class="msg"></div>
+        </div>
       </div>
 
       <div id="panel-alertconfig" class="admin-panel" style="display:none">
@@ -987,6 +1003,31 @@
         }
         document.getElementById('set-inactivity').value = v;
       } catch (e) {}
+      try {
+        var tSnap = await db.collection('settings').doc('dashboardTheme').get();
+        var sel = document.getElementById('set-theme');
+        if (sel && tSnap.exists && tSnap.data().themeId) {
+          sel.value = tSnap.data().themeId;
+        }
+      } catch (e) {}
+    }
+
+    async function saveThemeSetting() {
+      var sel = document.getElementById('set-theme');
+      var msg = document.getElementById('theme-msg');
+      if (!sel) return;
+      try {
+        await db.collection('settings').doc('dashboardTheme').set({
+          themeId: sel.value,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        msg.className = 'ok';
+        msg.textContent = 'Theme saved — ' + sel.options[sel.selectedIndex].text + '.';
+        setTimeout(function () { msg.textContent = ''; }, 3000);
+      } catch (e) {
+        msg.className = 'err';
+        msg.textContent = 'Save failed: ' + (e.message || e);
+      }
     }
 
     function showAdminPanel(tab) {

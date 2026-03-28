@@ -79,105 +79,6 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 ::-webkit-scrollbar-thumb { background:#1E3A5F;border-radius:3px; }
 ::-webkit-scrollbar-thumb:hover { background:#2A4A6A; }
 
-/* ── SETTINGS GEAR BUTTON ── */
-#settings-btn {
-  position:fixed;
-  width:28px;height:28px;
-  background:rgba(13,31,60,0.85);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:7px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  z-index:9000;
-  backdrop-filter:blur(8px);
-  transition:background 0.15s,border-color 0.15s,box-shadow 0.15s;
-  user-select:none;
-}
-#settings-btn:hover { background:rgba(13,42,80,0.95);border-color:rgba(255,255,255,0.25);box-shadow:0 2px 12px rgba(0,0,0,0.4); }
-#settings-btn svg { pointer-events:none; }
-
-/* ── SETTINGS POPUP ── */
-#settings-popup {
-  position:fixed;
-  top:60px;left:16px;
-  width:320px;
-  background:#0D1F3C;
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:12px;
-  box-shadow:0 16px 48px rgba(0,0,0,0.7);
-  z-index:9001;
-  display:none;
-  flex-direction:column;
-  overflow:hidden;
-}
-#settings-popup.open { display:flex; }
-.sp-popup-header {
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px 12px;
-  border-bottom:1px solid rgba(255,255,255,0.07);
-}
-.sp-popup-title { font-size:13px;font-weight:700;color:#FFFFFF;letter-spacing:0.04em; }
-.sp-popup-close {
-  width:22px;height:22px;border-radius:5px;
-  background:transparent;border:none;color:#8AA8C0;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:14px;transition:background 0.15s,color 0.15s;
-}
-.sp-popup-close:hover { background:rgba(255,255,255,0.08);color:#FFFFFF; }
-.sp-tab-bar {
-  display:flex;gap:0;
-  border-bottom:1px solid rgba(255,255,255,0.07);
-  padding:0 16px;
-}
-.sp-tab {
-  font-size:11px;font-weight:600;color:#8AA8C0;
-  padding:9px 12px 8px;
-  cursor:pointer;
-  border-bottom:2px solid transparent;
-  transition:color 0.15s;
-  letter-spacing:0.04em;
-}
-.sp-tab:hover { color:#FFFFFF; }
-.sp-tab.active { color:#FFFFFF;border-bottom-color:#0D9AAA; }
-.sp-tab-content { padding:16px; }
-.sp-tab-pane { display:none; }
-.sp-tab-pane.active { display:block; }
-
-/* Theme selector */
-.sp-section-label {
-  font-size:9px;font-weight:700;color:#5A7A9A;
-  letter-spacing:0.1em;text-transform:uppercase;
-  margin-bottom:10px;
-}
-.sp-theme-dropdown {
-  width:100%;background:#0A1628;
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:8px;color:#FFFFFF;
-  font-size:12px;font-weight:500;
-  padding:9px 12px;cursor:pointer;
-  outline:none;font-family:inherit;
-  -webkit-appearance:none;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%238892b8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;
-  background-position:right 12px center;
-  transition:border-color 0.15s;
-}
-.sp-theme-dropdown:hover { border-color:rgba(255,255,255,0.25); }
-.sp-theme-preview {
-  margin-top:10px;border-radius:8px;overflow:hidden;
-  border:1px solid rgba(255,255,255,0.08);
-  height:60px;display:flex;
-}
-.sp-theme-swatch {
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;
-  font-size:8px;font-weight:600;letter-spacing:0.06em;
-  text-transform:uppercase;
-}
-.sp-theme-hint {
-  font-size:10px;color:#5A7A9A;margin-top:8px;text-align:center;
-}
-  
 
 </style>
   <script>
@@ -1500,6 +1401,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       loadData();
       if(refreshTimer)clearInterval(refreshTimer);
       refreshTimer=setInterval(loadData,60000);
+      loadThemeFromFirestore();
     }
     function showLogin(){
       document.getElementById('loginScreen').style.display='flex';
@@ -2014,110 +1916,6 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 
 
 
-    // ── SETTINGS BUTTON — DRAG + POSITION MEMORY ──
-    (function(){
-      const BTN_KEY = 'nirix_settings_btn_pos';
-      let isDragging = false, hasDragged = false;
-      let ox = 0, oy = 0;
-
-      function initSettingsBtn(){
-        const btn = document.getElementById('settings-btn');
-        if(!btn) return;
-        // Load saved position
-        try {
-          const saved = JSON.parse(localStorage.getItem(BTN_KEY));
-          if(saved){
-            btn.style.left = saved.left + 'px';
-            btn.style.top  = saved.top  + 'px';
-            btn.style.right = 'auto';
-          } else {
-            // Default: just below Nirix logo on right side
-            btn.style.right = '18px';
-            btn.style.top = '58px';
-            btn.style.left = 'auto';
-          }
-        } catch(e) {
-          btn.style.right = '18px';
-          btn.style.top = '58px';
-        }
-
-        btn.addEventListener('mousedown', function(e){
-          isDragging = false; hasDragged = false;
-          const r = btn.getBoundingClientRect();
-          ox = e.clientX - r.left;
-          oy = e.clientY - r.top;
-          document.addEventListener('mousemove', onDrag);
-          document.addEventListener('mouseup', onUp);
-          e.preventDefault();
-        });
-      }
-
-      function onDrag(e){
-        const btn = document.getElementById('settings-btn');
-        if(!btn) return;
-        isDragging = true; hasDragged = true;
-        const x = Math.max(0, Math.min(e.clientX - ox, window.innerWidth - btn.offsetWidth));
-        const y = Math.max(0, Math.min(e.clientY - oy, window.innerHeight - btn.offsetHeight));
-        btn.style.left  = x + 'px';
-        btn.style.top   = y + 'px';
-        btn.style.right = 'auto';
-      }
-
-      function onUp(){
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('mouseup', onUp);
-        if(hasDragged){
-          const btn = document.getElementById('settings-btn');
-          try { localStorage.setItem(BTN_KEY, JSON.stringify({ left: parseInt(btn.style.left), top: parseInt(btn.style.top) })); } catch(e){}
-        }
-        setTimeout(function(){ isDragging = false; }, 50);
-      }
-
-      window._settingsBtnDragged = function(){ return hasDragged; };
-      window._resetSettingsDrag  = function(){ hasDragged = false; };
-
-      // Init after app shows
-      document.addEventListener('DOMContentLoaded', function(){
-        initSettingsBtn();
-      });
-      // Also init on login (app div shown later)
-      window._initSettingsBtn = initSettingsBtn;
-    })();
-
-    // ── SETTINGS POPUP ──
-    function toggleSettingsPopup(e){
-      if(window._settingsBtnDragged && window._settingsBtnDragged()){ window._resetSettingsDrag && window._resetSettingsDrag(); return; }
-      const popup = document.getElementById('settings-popup');
-      if(!popup) return;
-      const isOpen = popup.classList.contains('open');
-      if(isOpen){ popup.classList.remove('open'); return; }
-      // Position popup near the button
-      const btn = document.getElementById('settings-btn');
-      const br = btn.getBoundingClientRect();
-      popup.style.left = Math.min(br.left, window.innerWidth - 340) + 'px';
-      popup.style.top  = (br.bottom + 6) + 'px';
-      popup.classList.add('open');
-      updateThemePreview(document.getElementById('sp-theme-select').value);
-    }
-    function closeSettingsPopup(){
-      const popup = document.getElementById('settings-popup');
-      if(popup) popup.classList.remove('open');
-    }
-    document.addEventListener('click', function(e){
-      const popup = document.getElementById('settings-popup');
-      const btn   = document.getElementById('settings-btn');
-      if(popup && btn && !popup.contains(e.target) && !btn.contains(e.target)){
-        popup.classList.remove('open');
-      }
-    });
-    function spSwitchTab(name, el){
-      document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.sp-tab-pane').forEach(p => p.classList.remove('active'));
-      el.classList.add('active');
-      const pane = document.getElementById('sp-pane-' + name);
-      if(pane) pane.classList.add('active');
-    }
-
     // ── THEME SYSTEM ──
     const THEMES = {
       'ocean-dark': {
@@ -2141,7 +1939,6 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         textMuted: '#8b92d6', preview: ['#040510','#0E1238','#00e5ff']
       }
     };
-    const THEME_KEY = 'nirix_dashboard_theme';
 
     function applyTheme(themeId){
       const t = THEMES[themeId] || THEMES['ocean-dark'];
@@ -2911,52 +2708,17 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         if(nav) nav.style.boxShadow = '';
         document.body.classList.remove('theme-cyber');
       }
-      // Save
-      try { localStorage.setItem(THEME_KEY, themeId); } catch(e){}
-      // Update preview
-      updateThemePreview(themeId);
-      // Update select
-      const sel = document.getElementById('sp-theme-select');
-      if(sel) sel.value = themeId;
     }
 
-    function updateThemePreview(themeId){
-      const t = THEMES[themeId] || THEMES['ocean-dark'];
-      const preview = document.getElementById('sp-theme-preview');
-      if(!preview) return;
-      preview.innerHTML = t.preview.map((c,i) => {
-        const labels = ['Background','Surface','Accent'];
-        return `<div class="sp-theme-swatch" style="background:${c};color:${i===2?'#000':'#fff'}">${labels[i]}</div>`;
-      }).join('');
-    }
-
-    function loadSavedTheme(){
+    async function loadThemeFromFirestore(){
+      if(!_fbDb) return;
       try {
-        const saved = localStorage.getItem(THEME_KEY);
-        if(saved && THEMES[saved]) applyTheme(saved);
+        var snap = await _fbDb.collection('settings').doc('dashboardTheme').get();
+        if(snap.exists && snap.data().themeId && THEMES[snap.data().themeId]){
+          applyTheme(snap.data().themeId);
+        }
       } catch(e){}
     }
-
-    // Auto-init settings btn + theme when app div becomes visible (after login)
-    (function(){
-      var _appObserver = new MutationObserver(function(mutations){
-        mutations.forEach(function(m){
-          if(m.type==='attributes' && m.attributeName==='style'){
-            var app = document.getElementById('app');
-            if(app && app.style.display !== 'none' && app.style.display !== ''){
-              loadSavedTheme();
-              setTimeout(function(){ window._initSettingsBtn && window._initSettingsBtn(); }, 50);
-              _appObserver.disconnect();
-            }
-          }
-        });
-      });
-      document.addEventListener('DOMContentLoaded', function(){
-        var app = document.getElementById('app');
-        if(app) _appObserver.observe(app, { attributes: true });
-        loadSavedTheme();
-      });
-    })();
 
     function switchModule(mod){
       activeModule=mod;
@@ -3145,40 +2907,6 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 
   </div>
 
-  <!-- ── SETTINGS GEAR BUTTON (draggable, position saved in localStorage) ── -->
-  <div id="settings-btn" title="Settings" onclick="toggleSettingsPopup(event)">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8AA8C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>
-  </div>
-
-  <!-- ── SETTINGS POPUP ── -->
-  <div id="settings-popup">
-    <div class="sp-popup-header">
-      <span class="sp-popup-title">⚙ Settings</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button type="button" onclick="handleSignOut();closeSettingsPopup();" style="background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#8AA8C0;font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;font-family:inherit"
-          onmouseover="this.style.color='#FFF';this.style.borderColor='rgba(255,255,255,0.3)'" onmouseout="this.style.color='#8AA8C0';this.style.borderColor='rgba(255,255,255,0.15)'">Sign out</button>
-        <button class="sp-popup-close" onclick="closeSettingsPopup()">✕</button>
-      </div>
-    </div>
-    <div class="sp-tab-bar">
-      <div class="sp-tab active" onclick="spSwitchTab('themes',this)">Themes</div>
-    </div>
-    <div class="sp-tab-content">
-      <div class="sp-tab-pane active" id="sp-pane-themes">
-        <div class="sp-section-label">Dashboard Theme</div>
-        <select class="sp-theme-dropdown" id="sp-theme-select" onchange="applyTheme(this.value)">
-          <option value="ocean-dark">Ocean Dark (Default)</option>
-          <option value="scifi-grid">⬡ Sci-Fi Grid</option>
-          <option value="cyber-indigo">⚡ Cyber Indigo</option>
-        </select>
-        <div class="sp-theme-preview" id="sp-theme-preview"></div>
-        <div class="sp-theme-hint">Theme is saved per browser session</div>
-      </div>
-    </div>
-  </div>
 
   <div id="module-nav" style="background:#0D1F3C;border-bottom:1px solid #1E3A5F;padding:0 18px;display:flex;align-items:flex-end;gap:6px;flex-shrink:0">
     <div id="tab-daily" onclick="switchModule('daily')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1E3A5F;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:1">
