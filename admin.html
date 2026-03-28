@@ -189,175 +189,13 @@
     </header>
     <main>
       <div class="admin-tab-bar">
-        <button type="button" class="admin-tab active" data-tab="overview">Overview</button>
+        <button type="button" class="admin-tab active" data-tab="permissions">User Permissions</button>
         <button type="button" class="admin-tab" data-tab="users">Users</button>
-        <button type="button" class="admin-tab" data-tab="permissions">User Permissions</button>
         <button type="button" class="admin-tab" data-tab="activity">Activity Log</button>
         <button type="button" class="admin-tab" data-tab="settings">Settings</button>
         <button type="button" class="admin-tab" data-tab="alertconfig">Alert Config</button>
       </div>
 
-      <div id="panel-overview" class="admin-panel">
-      <!-- ── PERMISSIONS REFERENCE TABLE ── -->
-      <div class="panel">
-        <h2>Role permissions reference</h2>
-        <div style="overflow-x:auto">
-          <table class="perm-table">
-            <thead>
-              <tr>
-                <th style="min-width:200px">Capability</th>
-                <th><span class="role-badge badge-admin">Admin</span></th>
-                <th><span class="role-badge badge-manager">Manager</span></th>
-                <th><span class="role-badge badge-viewer">Viewer</span></th>
-                <th><span class="role-badge badge-vplus">Viewer+</span></th>
-                <th><span class="role-badge badge-blocked">Blocked</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Access -->
-              <tr class="perm-section"><td colspan="6">Access</td></tr>
-              <tr>
-                <td>Login to dashboard</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>View all modules</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Open Admin Panel</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Nirix logo clickable</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-
-              <!-- Certification -->
-              <tr class="perm-section"><td colspan="6">Certification module</td></tr>
-              <tr>
-                <td>View &amp; download certificates</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Edit certificate name</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Edit expiry date</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="partial">If granted</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Edit renewal window</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Upload certificate files</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="partial">If granted</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Add new certificate row</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Delete certificate rows</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Delete uploaded files</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-
-              <!-- Other modules -->
-              <tr class="perm-section"><td colspan="6">Other modules</td></tr>
-              <tr>
-                <td>Daily Reports — view</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Engine Run-hrs — view</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Boat Tech. Specs — view</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-              <tr>
-                <td>Fleet Availability — view &amp; edit</td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="tick">✓</span></td>
-                <td><span class="cross">✕</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div style="margin-top:12px;font-size:10px;color:#4A6A8A;line-height:1.6">
-          <span style="color:#E0A050;font-weight:600">Viewer+</span> — same as Viewer with optional extra permissions granted individually per user (see User Permissions tab). Configure granular overrides in the Users table or User Permissions tab.
-        </div>
-      </div>
-      </div>
 
       <div id="panel-users" class="admin-panel" style="display:none">
       <!-- ── ADD USER ── -->
@@ -402,11 +240,76 @@
       </div>
       </div>
 
-      <div id="panel-permissions" class="admin-panel" style="display:none">
+      <div id="panel-permissions" class="admin-panel">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+          <button type="button" class="ac-subtab active" data-permtab="perm-overview" onclick="event.stopPropagation();switchPermTab('perm-overview')">Overview</button>
+          <button type="button" class="ac-subtab" data-permtab="perm-edit" onclick="event.stopPropagation();switchPermTab('perm-edit')">User Permissions</button>
+        </div>
+
+        <div id="perm-overview" class="perm-tab-pane">
+        <div class="panel">
+          <h2>Role permissions reference</h2>
+          <div style="overflow-x:auto">
+            <table class="perm-table">
+              <thead>
+                <tr>
+                  <th style="min-width:200px">Capability</th>
+                  <th><span class="role-badge badge-admin">Admin</span></th>
+                  <th><span class="role-badge badge-manager">Manager</span></th>
+                  <th><span class="role-badge badge-viewer">Viewer</span></th>
+                  <th><span class="role-badge badge-vplus">Viewer+</span></th>
+                  <th><span class="role-badge badge-blocked">Blocked</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="perm-section"><td colspan="6">Access</td></tr>
+                <tr><td>Login to dashboard</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>View all modules</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Open Admin Panel</td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Nirix logo clickable</td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr class="perm-section"><td colspan="6">Certification module</td></tr>
+                <tr><td>View &amp; download certificates</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Edit certificate name</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Edit expiry date</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="partial">If granted</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Edit renewal window</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Upload certificate files</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="partial">If granted</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Add new certificate row</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Delete certificate rows</td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Delete uploaded files</td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td></tr>
+                <tr class="perm-section"><td colspan="6">Other modules</td></tr>
+                <tr><td>Daily Reports — view</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Engine Run-hrs — view</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Boat Tech. Specs — view</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+                <tr><td>Fleet Availability — view &amp; edit</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td><td><span class="cross">✕</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:12px;font-size:10px;color:#4A6A8A;line-height:1.6">
+            <span style="color:#E0A050;font-weight:600">Viewer+</span> — same as Viewer with optional extra permissions granted individually per user. Configure granular overrides in the User Permissions sub-tab.
+          </div>
+        </div>
+        </div>
+
+        <div id="perm-edit" class="perm-tab-pane" style="display:none">
         <div class="panel">
           <h2>Select user</h2>
           <select id="perm-user-sel" style="min-width:280px;margin-bottom:8px"></select>
-          <div style="font-size:11px;color:#5A7A9A">Choose a user to edit granular permission overrides (Default / Grant / Deny).</div>
+          <div style="font-size:11px;color:#5A7A9A;margin-bottom:14px">Choose a user to edit granular permission overrides (Default / Grant / Deny).</div>
+          <div id="perm-inline-area">
+            <div id="perm-inline-header" style="display:none;margin-bottom:12px">
+              <div id="perm-inline-title" style="font-size:16px;font-weight:700;color:#FFF"></div>
+              <div id="perm-inline-sub" style="font-size:12px;color:#8AA8C0;margin-top:4px"></div>
+            </div>
+            <table class="perm-modal-table" id="perm-inline-table" style="display:none">
+              <thead><tr><th>Permission</th><th>Has it?</th><th>Override</th></tr></thead>
+              <tbody id="perm-inline-tbody"></tbody>
+            </table>
+            <div id="perm-inline-actions" style="margin-top:16px;display:none;gap:10px;align-items:center">
+              <button type="button" class="btn" id="perm-inline-save">Save</button>
+              <span id="perm-inline-saved" class="ok" style="display:none">Saved.</span>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -665,25 +568,6 @@
     </main>
   </div>
 
-  <div id="perm-modal-overlay" onclick="if(event.target===this)closePermModal()">
-    <div id="perm-modal" onclick="event.stopPropagation()">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-        <div>
-          <div id="perm-modal-title" style="font-size:16px;font-weight:700;color:#FFF">Permissions</div>
-          <div id="perm-modal-sub" style="font-size:12px;color:#8AA8C0;margin-top:4px"></div>
-        </div>
-        <button type="button" onclick="closePermModal()" style="background:transparent;border:none;color:#8AA8C0;font-size:20px;cursor:pointer;line-height:1">&times;</button>
-      </div>
-      <table class="perm-modal-table">
-        <thead><tr><th>Permission</th><th>Has it?</th><th>Override</th></tr></thead>
-        <tbody id="perm-modal-tbody"></tbody>
-      </table>
-      <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
-        <button type="button" class="btn" id="perm-modal-save">Save</button>
-        <span id="perm-modal-saved" class="ok" style="display:none">Saved.</span>
-      </div>
-    </div>
-  </div>
 
   <script>
     var _fbDb = null;
@@ -916,10 +800,10 @@
       var email = d.email || uid;
       var role = d.role || 'viewer';
       var badge = role === 'admin' ? 'admin' : role === 'manager' ? 'manager' : 'viewer';
-      document.getElementById('perm-modal-title').textContent = 'Permissions — ' + email;
-      document.getElementById('perm-modal-sub').innerHTML = 'Role: <span class="role-badge badge-' + badge + '">' + role + '</span>';
+      document.getElementById('perm-inline-title').textContent = 'Permissions — ' + email;
+      document.getElementById('perm-inline-sub').innerHTML = 'Role: <span class="role-badge badge-' + badge + '">' + role + '</span>';
       var ex = d.extraPermissions || {};
-      var tb = document.getElementById('perm-modal-tbody');
+      var tb = document.getElementById('perm-inline-tbody');
       tb.innerHTML = '';
       PERM_KEYS.forEach(function (key) {
         var has = permEffective(role, ex, key);
@@ -941,14 +825,14 @@
           '</td>';
         tb.appendChild(tr);
       });
-      document.getElementById('perm-modal-saved').style.display = 'none';
-      document.getElementById('perm-modal-overlay').classList.add('open');
+      document.getElementById('perm-inline-header').style.display = 'block';
+      document.getElementById('perm-inline-table').style.display = 'table';
+      document.getElementById('perm-inline-actions').style.display = 'flex';
+      document.getElementById('perm-inline-saved').style.display = 'none';
     }
-    function closePermModal() {
-      document.getElementById('perm-modal-overlay').classList.remove('open');
-    }
+    function closePermModal() {}
 
-    document.getElementById('perm-modal-save').addEventListener('click', async function () {
+    document.getElementById('perm-inline-save').addEventListener('click', async function () {
       if (!_permModalUid) return;
       var rec = _adminUserDocs.find(function (r) { return r.id === _permModalUid; });
       var merged = Object.assign({}, (rec && rec.d.extraPermissions) ? rec.d.extraPermissions : {});
@@ -961,8 +845,8 @@
       });
       try {
         await db.collection('users').doc(_permModalUid).set({ extraPermissions: merged }, { merge: true });
-        document.getElementById('perm-modal-saved').style.display = 'inline';
-        setTimeout(function () { document.getElementById('perm-modal-saved').style.display = 'none'; }, 2500);
+        document.getElementById('perm-inline-saved').style.display = 'inline';
+        setTimeout(function () { document.getElementById('perm-inline-saved').style.display = 'none'; }, 2500);
         await loadUsers();
         var ps = document.getElementById('perm-user-sel');
         if (ps) ps.value = _permModalUid;
@@ -1109,7 +993,7 @@
       document.querySelectorAll('.admin-tab').forEach(function (b) {
         b.classList.toggle('active', b.getAttribute('data-tab') === tab);
       });
-      ['overview', 'users', 'permissions', 'activity', 'settings', 'alertconfig'].forEach(function (id) {
+      ['users', 'permissions', 'activity', 'settings', 'alertconfig'].forEach(function (id) {
         var el = document.getElementById('panel-' + id);
         if (el) el.style.display = id === tab ? 'block' : 'none';
       });
@@ -1219,6 +1103,16 @@
       btn.classList.toggle('open', !open);
       var arrow = btn.querySelector('span');
       if (arrow) arrow.innerHTML = open ? '&#9654;' : '&#9660;';
+    }
+
+    function switchPermTab(id) {
+      ['perm-overview','perm-edit'].forEach(function (paneId) {
+        var pane = document.getElementById(paneId);
+        if (pane) pane.style.display = paneId === id ? 'block' : 'none';
+      });
+      document.querySelectorAll('#panel-permissions > div:first-child .ac-subtab').forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.permtab === id);
+      });
     }
 
     function switchAlertTab(id) {
