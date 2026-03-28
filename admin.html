@@ -413,12 +413,11 @@
       <div id="panel-activity" class="admin-panel" style="display:none">
         <div class="panel">
           <h2>Activity log</h2>
+          <p style="font-size:10px;color:#5A7A9A;margin-bottom:12px">Entries older than 7 days are automatically purged.</p>
+          <div id="act-user-btns" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
           <div class="filt-row">
             <label>From <input type="date" id="act-from" /></label>
             <label>To <input type="date" id="act-to" /></label>
-            <label>User
-              <select id="act-user"><option value="">All users</option></select>
-            </label>
             <label>Type
               <select id="act-type">
                 <option value="all">All</option>
@@ -1004,25 +1003,34 @@
       }
     }
 
-    function fillActUserDropdown() {
-      var sel = document.getElementById('act-user');
-      if (!sel) return;
-      var cur = sel.value;
-      sel.innerHTML = '<option value="">All users</option>';
-      _adminUserDocs.forEach(function (rec) {
-        var em = rec.d.email || rec.id;
-        var o = document.createElement('option');
-        o.value = em;
-        o.textContent = em;
-        sel.appendChild(o);
+    var _actSelectedUser = '';
+
+    function renderUserButtons() {
+      var wrap = document.getElementById('act-user-btns');
+      if (!wrap) return;
+      var emails = [];
+      _activityRows.forEach(function (r) {
+        var em = r.email || '';
+        if (em && emails.indexOf(em) < 0) emails.push(em);
       });
-      if (cur) sel.value = cur;
+      emails.sort();
+      var h = '<button type="button" class="ac-subtab' + (_actSelectedUser === '' ? ' active' : '') + '" onclick="selectActUser(\'\')">All Users</button>';
+      emails.forEach(function (em) {
+        var active = _actSelectedUser === em ? ' active' : '';
+        h += '<button type="button" class="ac-subtab' + active + '" onclick="selectActUser(\'' + esc(em).replace(/'/g, "\\'") + '\')">' + esc(em) + '</button>';
+      });
+      wrap.innerHTML = h;
+    }
+
+    function selectActUser(email) {
+      _actSelectedUser = email;
+      renderUserButtons();
+      renderActivityFiltered();
     }
 
     function actRowMatchesFilters(row) {
       var from = document.getElementById('act-from').value;
       var to = document.getElementById('act-to').value;
-      var ufil = document.getElementById('act-user').value;
       var typ = document.getElementById('act-type').value;
       var ms = row.timestamp && row.timestamp.toMillis ? row.timestamp.toMillis() : 0;
       if (from) {
@@ -1033,7 +1041,7 @@
         var t = new Date(to + 'T23:59:59').getTime();
         if (ms && ms > t) return false;
       }
-      if (ufil && (row.email || '') !== ufil) return false;
+      if (_actSelectedUser && (row.email || '') !== _actSelectedUser) return false;
       var a = row.action || '';
       if (typ === 'login') {
         if (['login', 'logout', 'auto_logout'].indexOf(a) < 0) return false;
@@ -1043,6 +1051,26 @@
         if (a !== 'download_cert') return false;
       }
       return true;
+    }
+
+    async function purgeOldActivity() {
+      try {
+        var cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        var old = await db.collection('activity_log')
+          .where('timestamp', '<', cutoff)
+          .get();
+        if (old.empty) return;
+        var batch = db.batch();
+        var count = 0;
+        old.forEach(function (doc) {
+          batch.delete(doc.ref);
+          count++;
+          if (count >= 400) return;
+        });
+        await batch.commit();
+      } catch (e) {
+        console.warn('Activity purge failed:', e);
+      }
     }
 
     function renderActivityFiltered() {
@@ -1092,8 +1120,10 @@
         var t = btn.getAttribute('data-tab');
         showAdminPanel(t);
         if (t === 'activity') {
-          loadActivityRaw().then(function () {
-            fillActUserDropdown();
+          purgeOldActivity().then(function () {
+            return loadActivityRaw();
+          }).then(function () {
+            renderUserButtons();
             renderActivityFiltered();
           });
         }
