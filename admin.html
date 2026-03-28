@@ -450,76 +450,15 @@
       </div>
 
       <div id="panel-alertconfig" class="admin-panel" style="display:none">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+          <button type="button" class="admin-tab active" data-actab="ac-daily" onclick="switchAlertTab('ac-daily')">Daily Report Alert Parameters</button>
+          <button type="button" class="admin-tab" data-actab="ac-runhrs" onclick="switchAlertTab('ac-runhrs')">Engine Running Hrs Alerts</button>
+          <button type="button" class="admin-tab" data-actab="ac-certs" onclick="switchAlertTab('ac-certs')">Certificate Band &amp; Visibility</button>
+        </div>
+
+        <!-- TAB 1: Daily Report Alert Parameters -->
+        <div id="ac-daily" class="ac-tab-pane">
         <div class="panel">
-          <h2>ENGINE RUN-HRS ALERT</h2>
-
-          <h3 style="font-size:13px;color:#8AA8C0;margin:14px 0 8px">Company Defaults</h3>
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead><tr>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Company</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Default Threshold</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Action</th>
-            </tr></thead>
-            <tbody>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">Sea Cabbie</td>
-                <td style="padding:8px 10px"><input type="number" id="ac-scb-thresh" min="1" max="99" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> hr</td>
-                <td style="padding:8px 10px"><button type="button" class="btn" onclick="saveCompanyDefault('Sea Cabbie')">Save</button></td>
-              </tr>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">SG Shipping</td>
-                <td style="padding:8px 10px"><input type="number" id="ac-sgs-thresh" min="1" max="99" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> hr</td>
-                <td style="padding:8px 10px"><button type="button" class="btn" onclick="saveCompanyDefault('SG Shipping')">Save</button></td>
-              </tr>
-            </tbody>
-          </table>
-          <div id="ac-company-msg" class="msg"></div>
-
-        </div>
-
-        <div class="panel" style="margin-top:18px">
-          <h2>CERT EXPIRY BAND THRESHOLDS</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px">
-            <thead><tr>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Band</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Days Boundary</th>
-              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Colour</th>
-            </tr></thead>
-            <tbody>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">Expired</td>
-                <td style="padding:8px 10px;color:#5A6278">< 0 days (fixed)</td>
-                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#BF00FF;vertical-align:middle"></span> <span style="color:#BF00FF">purple</span></td>
-              </tr>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">Critical</td>
-                <td style="padding:8px 10px">< <input type="number" id="ac-b1" min="1" max="365" style="width:60px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> days</td>
-                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#950606;vertical-align:middle"></span> <span style="color:#950606">dark red</span></td>
-              </tr>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">Warning</td>
-                <td style="padding:8px 10px">< <input type="number" id="ac-b2" min="1" max="365" style="width:60px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> days</td>
-                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#993D00;vertical-align:middle"></span> <span style="color:#993D00">dark orange</span></td>
-              </tr>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">Caution</td>
-                <td style="padding:8px 10px">< <input type="number" id="ac-b3" min="1" max="365" style="width:60px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> days</td>
-                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#D1FF19;vertical-align:middle"></span> <span style="color:#D1FF19">lime yellow</span></td>
-              </tr>
-              <tr>
-                <td style="padding:8px 10px;color:#FFF">Valid</td>
-                <td style="padding:8px 10px;color:#5A6278">&ge; band 3 days (fixed)</td>
-                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#2AAA6A;vertical-align:middle"></span> <span style="color:#2AAA6A">green</span></td>
-              </tr>
-            </tbody>
-          </table>
-          <div style="margin-top:12px">
-            <button type="button" class="btn" onclick="saveCertBands()">Save Band Settings</button>
-          </div>
-          <div id="ac-cert-msg" class="msg"></div>
-        </div>
-
-        <div class="panel" style="margin-top:18px">
           <h2>DAILY REPORTS ALERT PARAMETERS</h2>
 
           <h3 style="font-size:12px;color:#5AB8E8;margin:10px 0 8px;border-bottom:1px solid #1E3A5F;padding-bottom:6px">Part 1 — Global Defaults</h3>
@@ -599,6 +538,80 @@
             <tbody id="da-override-log"></tbody>
           </table>
         </div>
+        </div>
+
+        <!-- TAB 2: Engine Running Hrs Alerts -->
+        <div id="ac-runhrs" class="ac-tab-pane" style="display:none">
+        <div class="panel">
+          <h2>ENGINE RUN-HRS ALERT</h2>
+
+          <h3 style="font-size:13px;color:#8AA8C0;margin:14px 0 8px">Company Defaults</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Company</th>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Default Threshold</th>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Action</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">Sea Cabbie</td>
+                <td style="padding:8px 10px"><input type="number" id="ac-scb-thresh" min="1" max="99" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> hr</td>
+                <td style="padding:8px 10px"><button type="button" class="btn" onclick="saveCompanyDefault('Sea Cabbie')">Save</button></td>
+              </tr>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">SG Shipping</td>
+                <td style="padding:8px 10px"><input type="number" id="ac-sgs-thresh" min="1" max="99" style="width:70px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> hr</td>
+                <td style="padding:8px 10px"><button type="button" class="btn" onclick="saveCompanyDefault('SG Shipping')">Save</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div id="ac-company-msg" class="msg"></div>
+        </div>
+        </div>
+
+        <!-- TAB 3: Certificate Band & Visibility -->
+        <div id="ac-certs" class="ac-tab-pane" style="display:none">
+        <div class="panel">
+          <h2>CERT EXPIRY BAND THRESHOLDS</h2>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px">
+            <thead><tr>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Band</th>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Days Boundary</th>
+              <th style="text-align:left;padding:6px 10px;color:#8AA8C0;border-bottom:1px solid #1E3A5F">Colour</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">Expired</td>
+                <td style="padding:8px 10px;color:#5A6278">< 0 days (fixed)</td>
+                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#BF00FF;vertical-align:middle"></span> <span style="color:#BF00FF">purple</span></td>
+              </tr>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">Critical</td>
+                <td style="padding:8px 10px">< <input type="number" id="ac-b1" min="1" max="365" style="width:60px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> days</td>
+                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#950606;vertical-align:middle"></span> <span style="color:#950606">dark red</span></td>
+              </tr>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">Warning</td>
+                <td style="padding:8px 10px">< <input type="number" id="ac-b2" min="1" max="365" style="width:60px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> days</td>
+                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#993D00;vertical-align:middle"></span> <span style="color:#993D00">dark orange</span></td>
+              </tr>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">Caution</td>
+                <td style="padding:8px 10px">< <input type="number" id="ac-b3" min="1" max="365" style="width:60px;background:#0A1628;border:1px solid #1E3A5F;border-radius:6px;color:#FFF;padding:6px 8px;font-family:inherit" /> days</td>
+                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#D1FF19;vertical-align:middle"></span> <span style="color:#D1FF19">lime yellow</span></td>
+              </tr>
+              <tr>
+                <td style="padding:8px 10px;color:#FFF">Valid</td>
+                <td style="padding:8px 10px;color:#5A6278">&ge; band 3 days (fixed)</td>
+                <td style="padding:8px 10px"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#2AAA6A;vertical-align:middle"></span> <span style="color:#2AAA6A">green</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin-top:12px">
+            <button type="button" class="btn" onclick="saveCertBands()">Save Band Settings</button>
+          </div>
+          <div id="ac-cert-msg" class="msg"></div>
+        </div>
 
         <div class="panel" style="margin-top:18px">
           <h2>CERT TYPES VISIBILITY</h2>
@@ -623,6 +636,7 @@
             <button type="button" class="btn" onclick="saveCertTypes()">Save Cert Types</button>
           </div>
           <div id="ac-certtype-msg" class="msg"></div>
+        </div>
         </div>
       </div>
     </main>
@@ -1141,6 +1155,16 @@
       el.className = 'msg ' + (isOk ? 'ok' : 'err');
       el.textContent = text;
       setTimeout(function () { el.textContent = ''; el.className = 'msg'; }, 4000);
+    }
+
+    function switchAlertTab(id) {
+      ['ac-daily','ac-runhrs','ac-certs'].forEach(function (paneId) {
+        var pane = document.getElementById(paneId);
+        if (pane) pane.style.display = paneId === id ? 'block' : 'none';
+      });
+      document.querySelectorAll('#panel-alertconfig > div:first-child .admin-tab').forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.actab === id);
+      });
     }
 
     // ── DAILY ALERTS CONFIG v4 ─────────────────────────────
