@@ -13,7 +13,7 @@ try {
 
     $response = $sheets->spreadsheets_values->get(
         BOAT_TECH_SPECS_SPREADSHEET_ID,
-        'Data!A:Z'
+        'Fleet Tech Spec!A:Z'
     );
 
     $values = $response->getValues() ?? [];
@@ -46,5 +46,6 @@ try {
 
     jsonResponse(['ok' => true, 'data' => $boatSpecs]);
 } catch (Throwable $e) {
-    error_log('[nirix-api] ' . get_class($e) . ': ' . $e->getMessage()); jsonResponse(['ok' => false, 'error' => 'Internal server error'], 500);
+    error_log('[nirix-api] ' . get_class($e) . ': ' . $e->getMessage());
+    jsonResponse(['ok' => false, 'error' => 'Internal server error'], 500);
 }

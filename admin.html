@@ -194,6 +194,7 @@
         <button type="button" class="admin-tab" data-tab="activity">Activity Log</button>
         <button type="button" class="admin-tab" data-tab="settings">Settings</button>
         <button type="button" class="admin-tab" data-tab="alertconfig">Alert Config</button>
+        <button type="button" class="admin-tab" data-tab="accesskeys">Access Keys &amp; Passwords</button>
       </div>
 
 
@@ -581,6 +582,161 @@
         </div>
         </div>
       </div>
+
+      <div id="panel-accesskeys" class="admin-panel" style="display:none">
+        <div style="background:#1A0808;border:1px solid #5A1010;border-radius:8px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+          <span style="color:#FF5555;font-size:16px">&#9888;</span>
+          <span style="font-size:12px;color:#FF8080">This page contains sensitive credentials. Do not share screenshots of this page or leave it unattended.</span>
+        </div>
+
+        <!-- Card 1: Google Account -->
+        <div class="panel" style="border-left:3px solid #FF5555;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">Google Account</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,85,85,0.12);color:#FF5555;border:1px solid rgba(255,85,85,0.3)">Critical</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">The owner Gmail account for all Nirix Dashboard storage. All Google Drive files (fleet board state, daily report photos, certificate PDFs) and all Google Sheets (boat tech specs, daily reports) live under this account.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Email</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">sg.tech.portal@gmail.com</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Password</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">nirix2026</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Recovery Email</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">asharma@sggroup.sg</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> Without access to this account, all file storage and spreadsheet data becomes inaccessible. Losing this account means losing all operational data. Keep the recovery email current.</div>
+        </div>
+
+        <!-- Card 2: Google Cloud Service Account -->
+        <div class="panel" style="border-left:3px solid #FF5555;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">Google Cloud Service Account</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,85,85,0.12);color:#FF5555;border:1px solid rgba(255,85,85,0.3)">Critical</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">A machine identity (not a human login) that lets the PHP scripts on the VPS authenticate silently to Google Drive and Google Sheets — no browser, no OAuth popup, no manual login required.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Project ID</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">studious-plate-491715-j8</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Service Account</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">nirix-dashboard-php@studious-plate-491715-j8.iam.gserviceaccount.com</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Key File on VPS</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">/etc/nirix-dashboard/service-account.json</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">APIs Enabled</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Google Drive API, Google Sheets API</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> This is the authentication backbone of all 5 PHP API endpoints. If this key is revoked, deleted, or the file on the VPS is removed, every API call from the dashboard stops working immediately — boat specs, fleet save/load, daily reports, photo uploads all fail.</div>
+        </div>
+
+        <!-- Card 3: Hostinger VPS -->
+        <div class="panel" style="border-left:3px solid #FF5555;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">Hostinger VPS</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,85,85,0.12);color:#FF5555;border:1px solid rgba(255,85,85,0.3)">Critical</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">The Ubuntu 24 server that hosts the dashboard frontend files and runs all 5 PHP API scripts via nginx and PHP-FPM inside Docker.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Server ID</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">srv1502178</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">IP Address</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">187.127.99.52</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">SSH Access</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">ssh root@187.127.99.52</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Dashboard URL</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">https://sg-portal.nirix.online</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Expiry</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">March 2027</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Web Root</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">/var/www/sg-portal.nirix.online/</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">PHP Scripts</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">/var/www/sg-portal.nirix.online/api/</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> If the VPS goes down or the subscription lapses, the dashboard and all API calls stop working. The server expires March 2027 — renew before then. SSH access uses key-based auth — do not lose the SSH key.</div>
+        </div>
+
+        <!-- Card 4: GitHub Repository -->
+        <div class="panel" style="border-left:3px solid #FF5555;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">GitHub Repository</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,85,85,0.12);color:#FF5555;border:1px solid rgba(255,85,85,0.3)">Critical</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">Hosts all dashboard source code and serves the static frontend via GitHub Pages. The experiments-ui branch is the live development branch.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Organisation</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">5abhinavs-ops</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Repository</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Nirix-Dashboard</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Repo URL</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">https://github.com/5abhinavs-ops/Nirix-Dashboard</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Live URL</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">https://5abhinavs-ops.github.io/Nirix-Dashboard/</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Dashboard Login Password</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">nirix2026</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Active Branch</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">experiments-ui</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> All code lives here. If the repo is deleted or access is lost, the dashboard source is gone. Never push directly to main — all changes go to experiments-ui only. The dashboard login password (nirix2026) is separate from GitHub credentials.</div>
+        </div>
+
+        <!-- Card 5: Firebase / Firestore -->
+        <div class="panel" style="border-left:3px solid #FF8C00;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">Firebase / Firestore</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,140,0,0.12);color:#FF8C00;border:1px solid rgba(255,140,0,0.3)">High</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">Handles all user authentication (login/logout) and stores the database records for certifications, alert configuration, and user roles and permissions.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Config File</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">firebase-config.js (project root)</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Services Used</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Firebase Auth + Firestore</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Auth</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">User login and session management</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Database</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Cert metadata, alert config, user roles</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> All user logins go through Firebase Auth. All certificate records and admin configuration are stored in Firestore. If the Firebase project is deleted or config changes, no one can log in and all cert data is lost.</div>
+        </div>
+
+        <!-- Card 6: Google Drive Folder IDs -->
+        <div class="panel" style="border-left:3px solid #FF8C00;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">Google Drive Folder IDs</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,140,0,0.12);color:#FF8C00;border:1px solid rgba(255,140,0,0.3)">High</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">These folder IDs are hardcoded in the PHP scripts. The scripts use them to know exactly where to read and write files in Google Drive.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Nirix Dashboard (root)</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">1s48O50sLZXUHRZDh8Z2vmCB778ku-kbt</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Fleet Board</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">1TsoVjjmYMqbA4zxAm1EIY1FaNhzMAqKN</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Daily Reports</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">19sLnneKHgsyf5JyM4CyuSzjf007P0_13</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Certifications</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">12CgxLHYpoNLBbQDrz91HdgNFmKS-4vRO</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> If any of these folders are moved, renamed, or deleted in Google Drive, the corresponding PHP script breaks silently. The fleet board cannot save, photos cannot upload, certs cannot store. Never move these folders without updating the PHP scripts.</div>
+        </div>
+
+        <!-- Card 7: Google Sheets IDs -->
+        <div class="panel" style="border-left:3px solid #FF8C00;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">Google Sheets IDs</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(255,140,0,0.12);color:#FF8C00;border:1px solid rgba(255,140,0,0.3)">High</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">These Sheet IDs are hardcoded in the PHP scripts. The scripts read boat tech specs and write daily report data to these exact spreadsheets.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Boat Tech Specs Sheet</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">1tj-SEY7syMVY5mHhn4hYT7Ej6z_Z2pTmrSzN3wYJk4c</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Daily Reports Sheet</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">1Fb7THxUnm_TRSv-tJAB1Wm8WfNhsXPnVEQOmF5TfoRw</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Boat Specs Tab Name</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Fleet Tech Spec</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Daily Reports Tab Name</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Sheet1</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> The Boat Tech Specs module reads from the Sheet every time the tab is opened. Daily report data from engineer submissions writes to the Daily Reports Sheet. Deleting or renaming these sheets breaks those modules immediately.</div>
+        </div>
+
+        <!-- Card 8: n8n (Decommissioned) -->
+        <div class="panel" style="border-left:3px solid #5a6278;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h2 style="color:#FFF;font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">n8n (Decommissioned)</h2>
+            <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;background:rgba(90,98,120,0.12);color:#5a6278;border:1px solid rgba(90,98,120,0.3)">Low</span>
+          </div>
+          <p style="font-size:11px;color:#5A7A9A;margin-bottom:14px;line-height:1.6">Previously used as the automation layer connecting the dashboard to Google Drive and Sheets. Fully replaced by the PHP service account scripts. Docker container still running on VPS pending shutdown.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">
+            <tbody>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Status</td><td style="padding:7px 10px;color:#FF8C00;font-family:monospace;font-size:12px">Being decommissioned</td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">URL</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">https://n8n.nirix.online</span></td></tr>
+              <tr><td style="padding:7px 10px;color:#7A9AB0;width:200px;font-size:11px">Instance</td><td style="padding:7px 10px;color:#FFF;font-family:monospace;font-size:12px"><span class="show-val" data-hidden="1" style="cursor:pointer;user-select:none" onclick="toggleVal(this)">Docker on Hostinger VPS srv1502178</span></td></tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:#4A6A8A;background:#060E1A;border-radius:6px;padding:10px 12px;line-height:1.7"><strong style="color:#7A9AB0">Why this matters:</strong> No longer required. To be shut down — stop Docker container and remove DNS record. Kept here for reference until decommission is confirmed complete.</div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -604,6 +760,34 @@
       if (s == null) return '';
       return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
     }
+
+    function toggleVal(el) {
+      var raw = el.getAttribute('data-raw');
+      if (!raw) {
+        raw = el.textContent;
+        el.setAttribute('data-raw', raw);
+      }
+      if (el.dataset.hidden === '1') {
+        el.textContent = raw;
+        el.dataset.hidden = '0';
+        el.style.color = '#FFF';
+      } else {
+        el.textContent = raw.replace(/./g, '\u25CF');
+        el.dataset.hidden = '1';
+        el.style.color = '#3A5A7A';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.show-val').forEach(function(el) {
+        var raw = el.textContent;
+        el.setAttribute('data-raw', raw);
+        el.textContent = raw.replace(/./g, '\u25CF');
+        el.dataset.hidden = '1';
+        el.style.color = '#3A5A7A';
+        el.title = 'Click to show';
+      });
+    });
 
     function rowBlockedState(uid) {
       const b = document.getElementById('blk-' + uid);
@@ -1034,7 +1218,7 @@
       document.querySelectorAll('.admin-tab').forEach(function (b) {
         b.classList.toggle('active', b.getAttribute('data-tab') === tab);
       });
-      ['users', 'permissions', 'activity', 'settings', 'alertconfig'].forEach(function (id) {
+      ['users', 'permissions', 'activity', 'settings', 'alertconfig', 'accesskeys'].forEach(function (id) {
         var el = document.getElementById('panel-' + id);
         if (el) el.style.display = id === tab ? 'block' : 'none';
       });
