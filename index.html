@@ -1810,7 +1810,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     }
 
 
-    const BOAT_SPECS_URL = '/api/boat-specs/';
+    const BOAT_SPECS_URL = '/api/boat-specs.php';
     let _bsLoaded = false;
 
     async function loadBoatSpecs(){
@@ -1819,9 +1819,16 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         const res = await fetch(BOAT_SPECS_URL);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        if (data && typeof data === 'object') {
-          // Merge fetched data into BOAT_SPECS
-          Object.assign(BOAT_SPECS, data);
+        if (data && typeof data === 'object' && data.ok === false) {
+          console.warn('Boat specs API error:', data.error || 'unknown');
+          return;
+        }
+        // PHP API returns { ok, data }; legacy flat boat map still supported
+        const specsMap = (data && data.ok && data.data && typeof data.data === 'object')
+          ? data.data
+          : data;
+        if (specsMap && typeof specsMap === 'object' && !Array.isArray(specsMap)) {
+          Object.assign(BOAT_SPECS, specsMap);
           _bsLoaded = true;
         }
       } catch(e) {
@@ -3671,7 +3678,7 @@ function saveAll(){
   document.title='Fleet Availability Board';
   const b=document.getElementById('btn-save');
   b.style.display='block'; b.textContent='✓ Saved!'; b.style.color='#5bc4a8';
-  if(typeof n8nSave==='function') n8nSave();
+  if(typeof driveSave==='function') driveSave();
   setTimeout(()=>{ b.style.display='none'; b.textContent='✓ Save changes'; b.style.color=''; },2000);
   // Refresh analytics if overlay is open
   const ov=document.getElementById('analytics-overlay');
@@ -4221,7 +4228,7 @@ window.initFleetModule=function(){
     if(typeof D!=='undefined'&&D['SCB_'+key]){mk=key; selDay=now.getDate();}
     else{mk='Mar_2026'; selDay=19;}
     if(typeof render==='function')render();
-    if(typeof n8nAutoLoad==='function') n8nAutoLoad();
+    if(typeof driveAutoLoad==='function') driveAutoLoad();
   }catch(err){console.error('Fleet init:',err);}
 };
 
@@ -4562,7 +4569,7 @@ window.initFleetModule=function(){
   
   <div class="ln-section" id="gdrive-section">
     <div class="ln-lbl">Cloud Sync</div>
-    <button class="ln-btn" onclick="n8nLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
+    <button class="ln-btn" onclick="driveLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
     <div id="gdrive-status" style="font-size:9.5px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
   </div>
 <div class="ln-spacer"></div>
@@ -4726,17 +4733,17 @@ window.initFleetModule=function(){
 
 
 <script>
-// ── NIRIX FLEET BOARD — n8n / Google Drive Sync ──────────────────────────────
-// Calls n8n webhooks to save/load fleet data to Google Drive.
-// No OAuth, no popup — credentials stay in n8n.
+// ── NIRIX FLEET BOARD — PHP / Google Drive Sync ──────────────────────────────
+// Calls PHP service-account scripts to save/load fleet data to Google Drive.
+// No OAuth, no popup — credentials stay on the server.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SAVE_PATH   = '/api/fleet-save/';
-const LOAD_PATH   = '/api/fleet-load/';
+const SAVE_PATH   = '/api/fleet-save.php';
+const LOAD_PATH   = '/api/fleet-load.php';
 
 // ── SAVE ─────────────────────────────────────────────────────────────────────
 
-async function n8nSave() {
+async function driveSave() {
   _showSyncStatus('Saving to Drive…', 'busy');
   try {
     const res = await fetch(SAVE_PATH, {
@@ -4754,13 +4761,13 @@ async function n8nSave() {
     }
   } catch (e) {
     _showSyncStatus('Save error: ' + e.message, 'error');
-    console.error('n8nSave error:', e);
+    console.error('driveSave error:', e);
   }
 }
 
 // ── LOAD ─────────────────────────────────────────────────────────────────────
 
-async function n8nLoad() {
+async function driveLoad() {
   _showSyncStatus('Loading from Drive…', 'busy');
   try {
     const res = await fetch(LOAD_PATH, {
@@ -4785,7 +4792,7 @@ async function n8nLoad() {
     }
   } catch (e) {
     _showSyncStatus('Load error: ' + e.message, 'error');
-    console.error('n8nLoad error:', e);
+    console.error('driveLoad error:', e);
   }
 }
 
@@ -4806,15 +4813,15 @@ function _showSyncStatus(msg, type) {
 // ── AUTO-LOAD on fleet module init ────────────────────────────────────────────
 // Called once when the Fleet tab is first opened
 
-function n8nAutoLoad() {
+function driveAutoLoad() {
   // Small delay so the board renders first, then overlays saved data
-  setTimeout(n8nLoad, 800);
+  setTimeout(driveLoad, 800);
 }
 
 // Expose to window
-window.n8nSave     = n8nSave;
-window.n8nLoad     = n8nLoad;
-window.n8nAutoLoad = n8nAutoLoad;
+window.driveSave     = driveSave;
+window.driveLoad     = driveLoad;
+window.driveAutoLoad = driveAutoLoad;
 
 </script>
 </body>

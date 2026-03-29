@@ -1290,7 +1290,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     }
 
 
-    const BOAT_SPECS_URL = '/api/boat-specs/';
+    const BOAT_SPECS_URL = '/api/boat-specs.php';
     let _bsLoaded = false;
 
     async function loadBoatSpecs(){
@@ -1299,9 +1299,16 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         const res = await fetch(BOAT_SPECS_URL);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
-        if (data && typeof data === 'object') {
-          // Merge fetched data into BOAT_SPECS
-          Object.assign(BOAT_SPECS, data);
+        if (data && typeof data === 'object' && data.ok === false) {
+          console.warn('Boat specs API error:', data.error || 'unknown');
+          return;
+        }
+        // PHP API returns { ok, data }; legacy flat boat map still supported
+        const specsMap = (data && data.ok && data.data && typeof data.data === 'object')
+          ? data.data
+          : data;
+        if (specsMap && typeof specsMap === 'object' && !Array.isArray(specsMap)) {
+          Object.assign(BOAT_SPECS, specsMap);
           _bsLoaded = true;
         }
       } catch(e) {

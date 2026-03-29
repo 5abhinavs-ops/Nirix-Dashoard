@@ -1133,7 +1133,7 @@ function saveAll(){
   document.title='Fleet Availability Board';
   const b=document.getElementById('btn-save');
   b.style.display='block'; b.textContent='✓ Saved!'; b.style.color='#5bc4a8';
-  if(typeof n8nSave==='function') n8nSave();
+  if(typeof driveSave==='function') driveSave();
   setTimeout(()=>{ b.style.display='none'; b.textContent='✓ Save changes'; b.style.color=''; },2000);
   // Refresh analytics if overlay is open
   const ov=document.getElementById('analytics-overlay');

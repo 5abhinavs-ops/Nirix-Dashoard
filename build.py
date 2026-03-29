@@ -532,7 +532,7 @@ window.initFleetModule=function(){
         'id="app" style="display:none;flex-direction:column;height:100vh;',
     )
 
-    # ── n8n / Google Drive sync injection ──────────────────────────────────────
+    # ── PHP / Google Drive sync injection ──────────────────────────────────────
     gdrive_js_path = os.path.join(BASE, 'gdrive_sync.js')
     if os.path.exists(gdrive_js_path):
         gdrive_js = open(gdrive_js_path, encoding='utf-8').read()
@@ -549,20 +549,20 @@ window.initFleetModule=function(){
         sync_ui = '''
   <div class="ln-section" id="gdrive-section">
     <div class="ln-lbl">Cloud Sync</div>
-    <button class="ln-btn" onclick="n8nLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
+    <button class="ln-btn" onclick="driveLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
     <div id="gdrive-status" style="font-size:9.5px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
   </div>'''
         idx = idx.replace('<div class="ln-spacer"></div>', sync_ui + '\n<div class="ln-spacer"></div>')
 
-        # 3. n8nSave is chained inside fleet_board.html saveAll() after the Saved! line.
+        # 3. driveSave is chained inside fleet_board.html saveAll() after the Saved! line.
 
         # 4. Hook initFleetModule to auto-load from Drive on first open
         idx = idx.replace(
             "if(typeof render==='function')render();",
-            "if(typeof render==='function')render();\n    if(typeof n8nAutoLoad==='function') n8nAutoLoad();",
+            "if(typeof render==='function')render();\n    if(typeof driveAutoLoad==='function') driveAutoLoad();",
             1  # only replace first occurrence (inside initFleetModule)
         )
-        print('[OK] n8n Drive sync injected')
+        print('[OK] Drive sync injected')
     else:
         print('[SKIP] gdrive_sync.js not found \u2014 Drive sync not injected')
 

@@ -1,14 +1,14 @@
-// ── NIRIX FLEET BOARD — n8n / Google Drive Sync ──────────────────────────────
-// Calls n8n webhooks to save/load fleet data to Google Drive.
-// No OAuth, no popup — credentials stay in n8n.
+// ── NIRIX FLEET BOARD — PHP / Google Drive Sync ──────────────────────────────
+// Calls PHP service-account scripts to save/load fleet data to Google Drive.
+// No OAuth, no popup — credentials stay on the server.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SAVE_PATH   = '/api/fleet-save/';
-const LOAD_PATH   = '/api/fleet-load/';
+const SAVE_PATH   = '/api/fleet-save.php';
+const LOAD_PATH   = '/api/fleet-load.php';
 
 // ── SAVE ─────────────────────────────────────────────────────────────────────
 
-async function n8nSave() {
+async function driveSave() {
   _showSyncStatus('Saving to Drive…', 'busy');
   try {
     const res = await fetch(SAVE_PATH, {
@@ -26,13 +26,13 @@ async function n8nSave() {
     }
   } catch (e) {
     _showSyncStatus('Save error: ' + e.message, 'error');
-    console.error('n8nSave error:', e);
+    console.error('driveSave error:', e);
   }
 }
 
 // ── LOAD ─────────────────────────────────────────────────────────────────────
 
-async function n8nLoad() {
+async function driveLoad() {
   _showSyncStatus('Loading from Drive…', 'busy');
   try {
     const res = await fetch(LOAD_PATH, {
@@ -57,7 +57,7 @@ async function n8nLoad() {
     }
   } catch (e) {
     _showSyncStatus('Load error: ' + e.message, 'error');
-    console.error('n8nLoad error:', e);
+    console.error('driveLoad error:', e);
   }
 }
 
@@ -78,12 +78,12 @@ function _showSyncStatus(msg, type) {
 // ── AUTO-LOAD on fleet module init ────────────────────────────────────────────
 // Called once when the Fleet tab is first opened
 
-function n8nAutoLoad() {
+function driveAutoLoad() {
   // Small delay so the board renders first, then overlays saved data
-  setTimeout(n8nLoad, 800);
+  setTimeout(driveLoad, 800);
 }
 
 // Expose to window
-window.n8nSave     = n8nSave;
-window.n8nLoad     = n8nLoad;
-window.n8nAutoLoad = n8nAutoLoad;
+window.driveSave     = driveSave;
+window.driveLoad     = driveLoad;
+window.driveAutoLoad = driveAutoLoad;
