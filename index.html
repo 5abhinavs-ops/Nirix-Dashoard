@@ -897,7 +897,7 @@ body.theme-cyber .hdr-title,
 
     function _daResolve(boat){
       var da=window._alertConfig&&window._alertConfig.dailyAlerts;
-      if(!da)return{tg:{},th:{}};
+      if(!da)return{on:function(){return true;},tv:function(){return null;}};
       var g=da.global||{};var gTog=g.toggles||{};var gThr=g.thresholds||{};
       var b=(da.boats&&da.boats[boat])||{};var bTog=b.toggles||{};var bThr=b.thresholds||{};
       return{
