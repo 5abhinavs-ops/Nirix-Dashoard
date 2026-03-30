@@ -6,15 +6,13 @@
   <title>Nirix — Technical Dashboard</title>
   <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-/* ── NIRIX TYPOGRAPHY SCALE ─────────────────────────────────────────────────
-   T1  Module / page titles          16px  700
-   T2  Boat names / section titles   15px  700
-   T3  Section headings              13px  700  accent colour
-   T4  Body values / table data      13px  500
-   T5  Field labels / muted text     12px  400
-   T6  Micro labels / badges / tags  11px  600
-   MIN Nothing below 11px anywhere
-────────────────────────────────────────────────────────────────────────────── */
+/* NIRIX TYPOGRAPHY SCALE
+   T1 Module titles    16px 700
+   T2 Boat names       15px 700
+   T3 Section headings 13px 700
+   T4 Body values      13px 500
+   T5 Field labels     12px 400
+   T6 Micro labels     11px 600 */
 :root {
   --fs-t1: 16px;   /* Module titles */
   --fs-t2: 15px;   /* Boat names, section titles */
@@ -25,7 +23,7 @@
   --fw-heading: 700;
   --fw-value: 500;
   --fw-label: 400;
-  --color-heading: #5BC4A8;   /* Teal accent for section headings */
+  --color-heading: #FFFFFF;   /* White for section headings */
   --color-value: #FFFFFF;
   --color-label: #8AA8C0;
   --color-micro: #8AA8C0;
@@ -1146,7 +1144,7 @@ body.theme-cyber .hdr-title,
       const curText = (cell.textContent || '').replace(/,/g, '').trim();
       const curVal = curText === '—' ? '' : curText;
       wrap.innerHTML = '<input type="number" class="rh-inline-inp" step="0.1" style="width:72px;padding:4px 6px;background:#0D1F3C;border:1px solid #1E3A5F;border-radius:4px;color:#FFF;font-size:12px" value="' + rhEscAttr(curVal) + '"/>' +
-        ' <span onclick="rhConfirmEdit(this)" style="cursor:pointer;color:#5BC4A8;font-weight:700">✓</span>' +
+        ' <span onclick="rhConfirmEdit(this)" style="cursor:pointer;color:#FFFFFF;font-weight:700">✓</span>' +
         ' <span onclick="rhCancelEdit(this)" style="cursor:pointer;color:#E05A5A;margin-left:4px">×</span>' +
         '<input type="hidden" class="rh-h-boat" value="' + rhEscAttr(boat) + '"/><input type="hidden" class="rh-h-side" value="' + side + '"/><input type="hidden" class="rh-h-month" value="' + month + '"/><input type="hidden" class="rh-h-year" value="' + year + '"/>';
       const inp = wrap.querySelector('.rh-inline-inp');
