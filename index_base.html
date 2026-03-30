@@ -6,6 +6,31 @@
   <title>Nirix — Technical Dashboard</title>
   <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── NIRIX TYPOGRAPHY SCALE ─────────────────────────────────────────────────
+   T1  Module / page titles          16px  700
+   T2  Boat names / section titles   15px  700
+   T3  Section headings              13px  700  accent colour
+   T4  Body values / table data      13px  500
+   T5  Field labels / muted text     12px  400
+   T6  Micro labels / badges / tags  11px  600
+   MIN Nothing below 11px anywhere
+────────────────────────────────────────────────────────────────────────────── */
+:root {
+  --fs-t1: 16px;   /* Module titles */
+  --fs-t2: 15px;   /* Boat names, section titles */
+  --fs-t3: 13px;   /* Section headings (Dimensions, Engine, Registration…) */
+  --fs-t4: 13px;   /* Body values, table data */
+  --fs-t5: 12px;   /* Field labels, muted descriptors */
+  --fs-t6: 11px;   /* Micro labels, badges, uppercase tags — absolute minimum */
+  --fw-heading: 700;
+  --fw-value: 500;
+  --fw-label: 400;
+  --color-heading: #5BC4A8;   /* Teal accent for section headings */
+  --color-value: #FFFFFF;
+  --color-label: #8AA8C0;
+  --color-micro: #8AA8C0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: #0A1628;
@@ -25,30 +50,30 @@ button { font-family: inherit; cursor: pointer; }
 .ctab { color:#6A8AAA;font-weight:400;border-bottom:2px solid transparent;background:transparent;cursor:pointer; }
 .ctab:hover { color:#FFFFFF; }
 .ctab.on { color:#FFFFFF;font-weight:700;background:#081828;border-bottom:2px solid #3A8FBF; }
-.cert-boat-item { padding:6px 10px 6px 0;font-size:11px;color:#8AA8C0;cursor:pointer;border-radius:4px; }
+.cert-boat-item { padding:6px 10px 6px 0;font-size:var(--fs-t6);color:#8AA8C0;cursor:pointer;border-radius:4px; }
 .cert-boat-item:hover { color:#FFFFFF;background:rgba(58,143,191,0.07);padding-left:6px; }
 .cert-boat-item.active { color:#5AB8E8;font-weight:700; }
 /* Shared cert grid — name | gap(96px) | expiry(120px) | window(150px) | view(76px) */
 .cert-grid-head { display:grid;grid-template-columns:minmax(160px,1fr) 96px 120px 150px 76px;align-items:center;padding:6px 0;border-bottom:1px solid #1A2F4A;column-gap:0;margin-top:8px; }
-.cert-grid-head span { font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase; }
+.cert-grid-head span { font-size:var(--fs-t6);font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase; }
 .cert-grid-row { display:grid;grid-template-columns:minmax(160px,1fr) 96px 120px 150px 76px;align-items:center;padding:9px 0;border-bottom:0.5px solid #0D1A2E;transition:background 0.1s;column-gap:0; }
 .cert-grid-row:last-child { border-bottom:none; }
 .cert-grid-row:hover { background:rgba(58,143,191,0.04); }
-.cert-name { font-size:12px;color:#FFFFFF;font-weight:500;padding-right:8px; }
+.cert-name { font-size:var(--fs-t4);color:#FFFFFF;font-weight:500;padding-right:8px; }
 .cert-gap {}
-.cert-expiry { font-size:11px;color:#FFFFFF;text-align:left; }
-.cert-window { font-size:10px;color:#7A9AB8;text-align:left;font-style:italic;padding-left:8px; }
+.cert-expiry { font-size:var(--fs-t5);color:#FFFFFF;text-align:left; }
+.cert-window { font-size:var(--fs-t6);color:#7A9AB8;text-align:left;font-style:italic;padding-left:8px; }
 .cert-view-btn { text-align:right; }
-.cert-view-btn span { font-size:10px;color:#5AB8E8;cursor:pointer;border:0.5px solid #2A5A7A;border-radius:4px;padding:3px 8px;transition:all 0.15s;white-space:nowrap; }
+.cert-view-btn span { font-size:var(--fs-t6);color:#5AB8E8;cursor:pointer;border:0.5px solid #2A5A7A;border-radius:4px;padding:3px 8px;transition:all 0.15s;white-space:nowrap; }
 .cert-view-btn span:hover { background:rgba(58,143,191,0.18);color:#8AD8FF;border-color:#3A8FBF; }
-.cert-section-head { font-size:9px;font-weight:700;color:#5A9EC8;letter-spacing:0.12em;text-transform:uppercase;padding:14px 0 7px;border-bottom:0.5px solid #1A3050;margin-bottom:2px; }
+.cert-section-head { font-size:var(--fs-t3);font-weight:700;color:var(--color-heading);letter-spacing:0.08em;text-transform:uppercase;padding:14px 0 7px;border-bottom:0.5px solid #1A3050;margin-bottom:2px; }
 /* vessel-box for compliance overview */
 .vessel-box { display:flex;align-items:center;gap:10px;padding:9px 14px;background:#0E2040;border:1px solid #2A4A6A;border-left:3px solid #3A8FBF;border-radius:6px;margin:14px 0 4px;cursor:pointer;transition:background 0.15s; }
 .vessel-box:hover { background:#142850; }
 .vessel-box.expanded { background:#122645;border-color:#3A8FBF; }
-.vessel-box .vname { font-size:12px;font-weight:700;color:#FFFFFF;flex:1; }
-.vessel-box .vcnt { font-size:10px;color:#5A9EC8;font-weight:600; }
-.vessel-box .vtoggle { font-size:10px;color:#5A9EC8;transition:transform 0.2s; }
+.vessel-box .vname { font-size:var(--fs-t2);font-weight:700;color:#FFFFFF;flex:1; }
+.vessel-box .vcnt { font-size:var(--fs-t6);color:#5A9EC8;font-weight:600; }
+.vessel-box .vtoggle { font-size:var(--fs-t6);color:#5A9EC8;transition:transform 0.2s; }
 .vessel-box.expanded .vtoggle { transform:rotate(90deg); }
 .ov-cert-list { display:none;padding:0 0 8px 0; }
 .ov-cert-list.open { display:block; }
@@ -56,20 +81,20 @@ button { font-family: inherit; cursor: pointer; }
 .cert-edit-row { display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:0.5px solid #0D1A2E; }
 .cert-edit-row:last-of-type { border-bottom:none; }
 .cert-edit-row:hover { background:rgba(58,143,191,0.03); }
-.cert-ei { background:transparent;border:none;border-bottom:1px solid transparent;color:#FFFFFF;font-size:12px;font-family:inherit;outline:none;padding:3px 5px;border-radius:4px;box-sizing:border-box;transition:border-color 0.15s,background 0.15s; }
+.cert-ei { background:transparent;border:none;border-bottom:1px solid transparent;color:#FFFFFF;font-size:var(--fs-t5);font-family:inherit;outline:none;padding:3px 5px;border-radius:4px;box-sizing:border-box;transition:border-color 0.15s,background 0.15s; }
 .cert-ei:hover,.cert-ei:focus { border-bottom-color:#3A8FBF;background:rgba(58,143,191,0.08); }
-.cert-ei-date { color:#FFFFFF;font-size:11px;width:110px;flex-shrink:0;color-scheme:dark; }
+.cert-ei-date { color:#FFFFFF;font-size:var(--fs-t6);width:110px;flex-shrink:0;color-scheme:dark; }
 .cert-ei-date::-webkit-calendar-picker-indicator { filter:invert(0.5);cursor:pointer; }
-.cert-ei-win { color:#7A9AB8;font-size:10px;font-style:italic;width:130px;flex-shrink:0; }
-.cert-ei-win[type="date"] { color:#FFFFFF;font-size:11px;font-style:normal; }
+.cert-ei-win { color:#7A9AB8;font-size:var(--fs-t6);font-style:italic;width:130px;flex-shrink:0; }
+.cert-ei-win[type="date"] { color:#FFFFFF;font-size:var(--fs-t6);font-style:normal; }
 .cert-ei-win[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.5);cursor:pointer; }
 .rh-cell-wrap { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:56px; }
-.rh-star { position:absolute; top:1px; right:2px; font-size:9px; color:#E0A050; cursor:pointer; z-index:2; line-height:1; }
-.rh-pencil { font-size:10px; color:#5AB8E8; cursor:pointer; margin-left:4px; opacity:0; transition:opacity 0.15s; flex-shrink:0; }
+.rh-star { position:absolute; top:1px; right:2px; font-size:var(--fs-t6); color:#E0A050; cursor:pointer; z-index:2; line-height:1; }
+.rh-pencil { font-size:var(--fs-t6); color:#5AB8E8; cursor:pointer; margin-left:4px; opacity:0; transition:opacity 0.15s; flex-shrink:0; }
 .rh-cell-wrap:hover .rh-pencil { opacity:1; }
 .cert-del-btn { font-size:14px;cursor:pointer;opacity:0.35;transition:opacity 0.15s;flex-shrink:0;padding:2px 4px;border-radius:4px; }
 .cert-del-btn:hover { opacity:1;background:rgba(200,40,40,0.15); }
-.cert-add-btn { display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 16px;background:transparent;border:1px dashed #2A5A7A;border-radius:8px;color:#5AB8E8;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:0.06em;transition:all 0.15s;width:fit-content; }
+.cert-add-btn { display:flex;align-items:center;gap:7px;margin-top:10px;padding:9px 16px;background:transparent;border:1px dashed #2A5A7A;border-radius:8px;color:#5AB8E8;font-size:var(--fs-t6);font-weight:600;cursor:pointer;letter-spacing:0.06em;transition:all 0.15s;width:fit-content; }
 .cert-add-btn:hover { background:rgba(58,143,191,0.09);border-color:#3A8FBF; }
 select { background:#0D1F3C;border:1px solid #1E3A5F;border-radius:6px;color:#FFFFFF;font-size:13px;font-weight:600;padding:6px 10px;cursor:pointer;outline:none;font-family:inherit; }
 select:hover { border-color:#0D8A9A; }
@@ -709,16 +734,16 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       const isSea=company==='Sea Cabbie';
       const companyTab=`<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;border:1px solid ${isSea?'#1A3A5A':'#1E2E4A'};background:${isSea?'#071828':'#0D1A2E'};margin-bottom:10px">
         ${isSea?seaCabbieLogoHTML():sgShippingLogoHTML()}
-        <div><div style="font-size:11px;font-weight:700;color:#FFFFFF;letter-spacing:0.06em;text-transform:uppercase">${company}</div><div style="font-size:9px;color:#8AA8C0;margin-top:1px">12 vessels</div></div></div>`;
+        <div><div style="font-size:11px;font-weight:700;color:#FFFFFF;letter-spacing:0.06em;text-transform:uppercase">${company}</div><div style="font-size:var(--fs-t6);color:#8AA8C0;margin-top:1px">12 vessels</div></div></div>`;
       const counts=`<div style="display:flex;gap:5px;margin-bottom:12px">${countBox(ok,'Submitted<br>OK','#071E14','#0D4A2A')}${countBox(al,'Alert','#1E1200','#6A4A00')}${countBox(cr,'Critical','#1E0808','#6A2020')}${countBox(ms,'Not<br>submitted','#0A1220','#1A2A3A')}</div>`;
       const groups=[{key:'critical',label:'Critical alert',dot:'#C84040'},{key:'alert',label:'Alert',dot:'#D4920A'},{key:'ok',label:'Submitted',dot:'#1A9A6A'},{key:'missing',label:'Not submitted',dot:'#3A4A60'}];
       let grpHTML='';
       groups.forEach(g=>{
         const items=st.filter(s=>s.status===g.key);if(!items.length)return;
-        grpHTML+=`<div style="margin-bottom:12px"><div class="scifi-group-label" style="display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase">
+        grpHTML+=`<div style="margin-bottom:12px"><div class="scifi-group-label" style="display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:var(--fs-t6);font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase">
           <div style="width:7px;height:7px;border-radius:50%;background:${g.dot};flex-shrink:0"></div>
           <div>${g.label}</div>
-          <span style="font-size:9px;color:#8AA8C0;background:#0A1628;border:0.5px solid #1E2A3A;padding:1px 5px;border-radius:8px">${items.length}</span></div>
+          <span style="font-size:var(--fs-t6);color:#8AA8C0;background:#0A1628;border:0.5px solid #1E2A3A;padding:1px 5px;border-radius:8px">${items.length}</span></div>
           ${items.map(s=>buildBoatCard(s.boat,s.status,s.row,today)).join('')}</div>`;
       });
       return companyTab+counts+`<div style="height:0.5px;background:#1E3A5F;margin:10px 0"></div>`+grpHTML;
@@ -732,7 +757,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
         bg==='#1E0808' ? 'scifi-count-critical' : 'scifi-count-missing';
       return `<div class="${scifiClass}" style="flex:1;background:${bg};border:1px solid ${border};border-radius:5px;padding:5px 3px;display:flex;flex-direction:column;align-items:center">
         <div style="font-size:14px;font-weight:700;color:#FFFFFF;line-height:1">${n}</div>
-        <div style="font-size:8px;color:#8AA8C0;margin-top:2px;text-align:center;line-height:1.2">${label}</div></div>`;
+        <div style="font-size:var(--fs-t6);color:#8AA8C0;margin-top:2px;text-align:center;line-height:1.2">${label}</div></div>`;
     }
 
     function buildBoatCard(boat,status,row,today){
@@ -749,10 +774,10 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       const hoverOn=themed?'':(isMissing?'':`onmouseover="this.style.background='#0F2540'"`);
       const hoverOff=themed?'':(isMissing?'':`onmouseout="this.style.background='#0D1F3C'"`);
       const click=isMissing?'':`onclick="openModal('${boat}','${today}')"`;
-      const pills=alerts.length>0?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">${alerts.slice(0,3).map(a=>`<span style="font-size:9px;padding:1px 5px;border-radius:3px;color:#FFFFFF;background:${status==='critical'?'#3A0A0A':'#3A2800'}">${a}</span>`).join('')}</div>`:'';
+      const pills=alerts.length>0?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">${alerts.slice(0,3).map(a=>`<span style="font-size:var(--fs-t6);padding:1px 5px;border-radius:3px;color:#FFFFFF;background:${status==='critical'?'#3A0A0A':'#3A2800'}">${a}</span>`).join('')}</div>`:'';
       const extraClass=`theme-boat-card status-${status}`;
       return `<div ${hoverOn} ${hoverOff} ${click} class="${extraClass}" style="${cursor}${opacity}display:flex;flex-direction:column;padding:7px 10px;border-radius:6px;margin-bottom:4px;background:#0D1F3C;border:1px solid ${border}">
-        <div style="display:flex;align-items:center;gap:6px"><span class="scifi-boat-name" style="font-size:13px;color:#FFFFFF;flex:1">${boat}</span>${time?`<span style="font-size:10px;color:#8AA8C0">${time}</span>`:''}</div>${pills}</div>`;
+        <div style="display:flex;align-items:center;gap:6px"><span class="scifi-boat-name" style="font-size:13px;color:#FFFFFF;flex:1">${boat}</span>${time?`<span style="font-size:var(--fs-t6);color:#8AA8C0">${time}</span>`:''}</div>${pills}</div>`;
     }
 
     function renderMonthly(){renderRail();renderGrid();}
@@ -761,13 +786,13 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       const today=todaySGT();let html='';
       [['Sea Cabbie',SEA_CABBIE],['SG Shipping',SG_SHIPPING]].forEach(([company,boats],ci)=>{
         if(ci>0)html+=`<div style="height:1px;background:#1E3A5F;margin:2px 0"></div>`;
-        html+=`<div style="font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.1em;text-transform:uppercase;padding:6px 14px 3px">${company}</div>`;
+        html+=`<div style="font-size:var(--fs-t6);font-weight:700;color:#8AA8C0;letter-spacing:0.1em;text-transform:uppercase;padding:8px 14px 4px">${company}</div>`;
         boats.forEach(boat=>{
           const st=boatStatus(boat,today);const sel=boat===selectedBoat;
           html+=`<div onclick="selectBoat('${boat}')"
             onmouseover="if('${boat}'!==selectedBoat)this.style.background='#0A1628',this.style.color='#FFFFFF'"
             onmouseout="if('${boat}'!==selectedBoat)this.style.background='transparent',this.style.color='#8AA8C0'"
-            style="display:flex;align-items:center;gap:7px;padding:7px 14px;cursor:pointer;border-left:3px solid ${sel?'#0D6A7A':'transparent'};background:${sel?'#0A1628':'transparent'};font-size:13px;color:${sel?'#FFFFFF':'#8AA8C0'};font-weight:${sel?'500':'400'}">
+            style="display:flex;align-items:center;gap:7px;padding:8px 14px;cursor:pointer;border-left:3px solid ${sel?'#0D6A7A':'transparent'};background:${sel?'#0A1628':'transparent'};font-size:var(--fs-t5);color:${sel?'#FFFFFF':'#8AA8C0'};font-weight:${sel?'600':'400'}">
             <div style="width:7px;height:7px;border-radius:50%;background:${dotColour(st)};flex-shrink:0"></div>${boat}</div>`;
         });
       });
@@ -820,11 +845,11 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       return `<span style="color:#AABFCC">${val||'—'}</span>`;
     }
 
-    function badge(text,bg){return `<span style="background:${bg};color:#FFFFFF;border-radius:3px;padding:1px 5px;font-size:10px;display:inline-block">${text}</span>`;}
+    function badge(text,bg){return `<span style="background:${bg};color:#FFFFFF;border-radius:3px;padding:1px 5px;font-size:var(--fs-t6);display:inline-block">${text}</span>`;}
     function prevMonth(){currentMonth--;if(currentMonth<0){currentMonth=11;currentYear--;}renderGrid();}
     function nextMonth(){currentMonth++;if(currentMonth>11){currentMonth=0;currentYear++;}renderGrid();}
-    function sHead(t,first){return `<div style="font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase;margin:${first?'0':'12px 0 7px'};padding-top:${first?'0':'10px'};border-top:${first?'none':'0.5px solid #1A2F4A'}">${t}</div>`;}
-    function pRow(label,val,col,isCrit){return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #0D1628"><span style="font-size:11px;color:#8AA8C0">${label}</span><span style="font-size:11px;font-weight:${col?'500':'400'};color:${col||(isCrit?'#C84040':'#FFFFFF')}">${val}</span></div>`;}
+    function sHead(t,first){return `<div style="font-size:var(--fs-t3);font-weight:700;color:var(--color-heading);letter-spacing:0.08em;text-transform:uppercase;margin:${first?'0':'14px 0 8px'};padding-top:${first?'0':'12px'};padding-bottom:5px;border-top:${first?'none':'0.5px solid #1A2F4A'};border-bottom:0.5px solid rgba(91,196,168,0.25)">${t}</div>`;}
+    function pRow(label,val,col,isCrit){return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #0D1628"><span style="font-size:var(--fs-t5);color:var(--color-label)">${label}</span><span style="font-size:var(--fs-t4);font-weight:${col?'600':'500'};color:${col||(isCrit?'#C84040':'var(--color-value)')}">${val}</span></div>`;}
     function switchDailyView(view,el){activeView=view;document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('v-daily').style.display=view==='daily'?'block':'none';document.getElementById('v-monthly').style.display=view==='monthly'?'block':'none';document.getElementById('left-rail').style.display=view==='monthly'?'flex':'none';if(view==='monthly')renderMonthly();else renderDaily();}
     function closeModal(){document.getElementById('modalOverlay').style.display='none';}
     function downloadPDF(){
@@ -840,19 +865,19 @@ select option { background:#0D1F3C;color:#FFFFFF; }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fff;color:#111;padding:32px 36px;font-size:12px}
 h1{font-size:18px;font-weight:700;color:#0A1628;margin-bottom:4px}
 .sub{font-size:11px;color:#5A7A9A;margin-bottom:8px}
-.badge{display:inline-block;padding:3px 10px;border-radius:5px;font-size:10px;font-weight:600;margin-bottom:18px}
-.sec-head{font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.1em;text-transform:uppercase;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #D0DDE8}
+.badge{display:inline-block;padding:3px 10px;border-radius:5px;font-size:var(--fs-t6);font-weight:600;margin-bottom:18px}
+.sec-head{font-size:var(--fs-t3);font-weight:700;color:#5A7A9A;letter-spacing:0.1em;text-transform:uppercase;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid #D0DDE8}
 .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #EEF2F6}
 .row span:first-child{color:#5A7A9A}
 .row span:last-child{font-weight:500;color:#0A1628}
 .row span.crit{color:#C84040;font-weight:700}
 .photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
 .photo-item{display:flex;flex-direction:column;gap:4px}
-.photo-item .lbl{font-size:9px;font-weight:600;color:#5A7A9A;text-transform:uppercase;letter-spacing:0.06em}
+.photo-item .lbl{font-size:var(--fs-t6);font-weight:600;color:#5A7A9A;text-transform:uppercase;letter-spacing:0.06em}
 .photo-item img{width:100%;height:120px;object-fit:cover;border-radius:6px;border:1px solid #D0DDE8}
 .photo-item .val{font-size:11px;font-weight:700;text-align:center;color:#0A1628}
 .photo-item .val.alert{color:#C84040}
-.no-photo{height:120px;background:#f5f7fa;border-radius:6px;border:1px solid #D0DDE8;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9AB0C0}
+.no-photo{height:120px;background:#f5f7fa;border-radius:6px;border:1px solid #D0DDE8;display:flex;align-items:center;justify-content:center;font-size:var(--fs-t6);color:#9AB0C0}
 @media print{
   @page{size:A4;margin:18mm 15mm}
   body{padding:0}
@@ -913,7 +938,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       body+=pRow('Engineer',row['Engineer']||'—',null,false);
       body+=pRow('Company',row['Company']||'—',null,false);
       body+=pRow('Report ID',row['Report ID']||'—',null,false);
-      body+=`<div style="font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase;margin:12px 0 7px;padding-top:10px;border-top:0.5px solid #1A2F4A">${hasPics?'Photos — engine room':'Photos — not included (older than 7 days)'}</div>`;
+      body+=`<div style="font-size:var(--fs-t3);font-weight:700;color:var(--color-heading);letter-spacing:0.08em;text-transform:uppercase;margin:12px 0 7px;padding-top:10px;border-top:0.5px solid #1A2F4A">${hasPics?'Photos — engine room':'Photos — not included (older than 7 days)'}</div>`;
       if(hasPics){
         const photoSlots=[
           {slot:'pe_rh_1',      label:'Run hours',    section:'PORT ENGINE', field:'Port Running Hours',    fmt:v=>v?v+' hrs':''},
@@ -950,7 +975,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           const sections=[...new Set(avail.map(p=>p.section))];
           sections.forEach(sec=>{
             const items=avail.filter(p=>p.section===sec);
-            body+=`<div style="font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.1em;text-transform:uppercase;margin:12px 0 6px;padding-bottom:4px;border-bottom:0.5px solid #1A2F4A">${sec}</div>`;
+            body+=`<div style="font-size:var(--fs-t3);font-weight:700;color:#5A7A9A;letter-spacing:0.1em;text-transform:uppercase;margin:12px 0 6px;padding-bottom:4px;border-bottom:0.5px solid #1A2F4A">${sec}</div>`;
             body+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">`;
             items.forEach(p=>{
               const rawVal=p.field?row[p.field]||'':'';
@@ -958,18 +983,18 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
               const isAlert=p.alertFn?p.alertFn(rawVal):false;
               const valColor=isAlert?'#C84040':'#FFFFFF';
               body+=`<div style="display:flex;flex-direction:column;gap:4px">
-                <div style="font-size:9px;font-weight:600;color:#8AA8C0;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.label}</div>
+                <div style="font-size:var(--fs-t6);font-weight:600;color:#8AA8C0;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.label}</div>
                 <img src="${p.url}" style="width:100%;height:105px;object-fit:cover;border-radius:6px;border:0.5px solid #1E3A5F;background:#0A1628;cursor:pointer"
                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
                   onclick="window.open('${p.url}','_blank')" />
-                <div style="display:none;height:105px;background:#0A1628;border-radius:6px;border:0.5px solid #1E3A5F;align-items:center;justify-content:center;font-size:9px;color:#3A4A60">Photo unavailable</div>
+                <div style="display:none;height:105px;background:#0A1628;border-radius:6px;border:0.5px solid #1E3A5F;align-items:center;justify-content:center;font-size:var(--fs-t6);color:#3A4A60">Photo unavailable</div>
                 ${dispVal?`<div style="font-size:11px;font-weight:700;color:${valColor};text-align:center;margin-top:1px">${dispVal}</div>`:''}
               </div>`;
             });
             body+=`</div>`;
           });
         } else {
-          body+=`<div style="font-size:10px;color:#8AA8C0;padding:10px 0">Photos uploading — refresh in a moment.</div>`;
+          body+=`<div style="font-size:var(--fs-t6);color:#8AA8C0;padding:10px 0">Photos uploading — refresh in a moment.</div>`;
         }
       }
       document.getElementById('modal-boat').textContent=boat;
@@ -979,7 +1004,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       document.getElementById('modal-body').innerHTML=body;
       document.getElementById('modalOverlay').style.display='flex';
     }
-    function sHead(text,first){return `<div style="font-size:9px;font-weight:600;color:#8AA8C0;letter-spacing:0.08em;text-transform:uppercase;margin:${first?'0':'12px 0 7px'};padding-top:${first?'0':'10px'};border-top:${first?'none':'0.5px solid #1A2F4A'}">${text}</div>`;}
+    function sHead(text,first){return `<div style="font-size:var(--fs-t3);font-weight:700;color:var(--color-heading);letter-spacing:0.08em;text-transform:uppercase;margin:${first?'0':'14px 0 8px'};padding-top:${first?'0':'12px'};padding-bottom:5px;border-top:${first?'none':'0.5px solid #1A2F4A'};border-bottom:0.5px solid rgba(91,196,168,0.25)">${text}</div>`;}
     function pRow(key,val,colour,isCritical){
       const c=isCritical?'#C84040':(colour?colour:'#FFFFFF');const w=colour||isCritical?'500':'400';
       return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #0D1628"><span style="font-size:11px;color:#8AA8C0">${key}</span><span style="font-size:12px;color:${c};font-weight:${w}">${val}</span></div>`;
@@ -1032,13 +1057,13 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 
       // ── Header row (once at top) ──
       html+=`<thead><tr>`;
-      html+=`<th style="position:sticky;left:0;z-index:3;text-align:left;min-width:160px;width:160px;padding:8px 12px;background:#071828;border-right:1px solid #1E3A5F;border-bottom:2px solid #1E3A5F;font-size:10px;font-weight:600;color:#8AA8C0;text-transform:uppercase;letter-spacing:0.06em">Vessel</th>`;
+      html+=`<th style="position:sticky;left:0;z-index:3;text-align:left;min-width:160px;width:160px;padding:8px 12px;background:#071828;border-right:1px solid #1E3A5F;border-bottom:2px solid #1E3A5F;font-size:var(--fs-t6);font-weight:700;color:#8AA8C0;text-transform:uppercase;letter-spacing:0.06em">Vessel</th>`;
       months.forEach((mo,i)=>{
         const isLatest=i===0;
-        html+=`<th style="text-align:center;min-width:90px;padding:8px 12px;border-left:1px solid #1E3A5F;border-bottom:2px solid #1E3A5F;font-size:12px;font-weight:700;color:${isLatest?'#FFFFFF':'#AABFCC'};background:${isLatest?'#0D2A3A':'#071828'};white-space:nowrap">${fmtMonthLabel(mo.month,mo.year)}</th>`;
+        html+=`<th style="text-align:center;min-width:90px;padding:8px 12px;border-left:1px solid #1E3A5F;border-bottom:2px solid #1E3A5F;font-size:var(--fs-t5);font-weight:700;color:${isLatest?'#FFFFFF':'#AABFCC'};background:${isLatest?'#0D2A3A':'#071828'};white-space:nowrap">${fmtMonthLabel(mo.month,mo.year)}</th>`;
       });
       html+=`<th style="background:#071828;border-left:1px solid #1E3A5F;border-bottom:2px solid #1E3A5F;padding:6px 10px;vertical-align:middle;white-space:nowrap">
-        <div onclick="toggleFleetOlder()" style="cursor:pointer;font-size:10px;font-weight:600;color:#0D9AAA;padding:4px 10px;border:1px solid #0D5A6A;border-radius:4px;background:#071828;text-align:center">
+        <div onclick="toggleFleetOlder()" style="cursor:pointer;font-size:var(--fs-t6);font-weight:600;color:#0D9AAA;padding:4px 10px;border:1px solid #0D5A6A;border-radius:4px;background:#071828;text-align:center">
           ${fleetOlderShown?'Newer ▶':'◀ Older'}
         </div>
       </th>`;
@@ -1075,7 +1100,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         html+=`<tr>`;
         html+=`<td style="position:sticky;left:0;z-index:1;padding:5px 12px 4px 18px;border-right:1px solid #1E3A5F;border-top:none;border-bottom:none;background:#0A1628">
           <div style="display:inline-flex;align-items:center;padding:2px 10px;background:#071828;border:1px solid #1E3A5F;border-radius:4px">
-            <span style="font-size:10px;font-weight:600;color:#8AA8C0;letter-spacing:0.06em;text-transform:uppercase">Port</span>
+            <span style="font-size:var(--fs-t6);font-weight:600;color:#8AA8C0;letter-spacing:0.06em;text-transform:uppercase">Port</span>
           </div>
         </td>`;
         portVals.forEach((v,i)=>{
@@ -1091,7 +1116,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         html+=`<tr>`;
         html+=`<td style="position:sticky;left:0;z-index:1;padding:4px 12px 8px 18px;border-right:1px solid #1E3A5F;border-top:none;border-bottom:${isLast?'none':'1px solid #1A2F4A'};background:#0A1628">
           <div style="display:inline-flex;align-items:center;padding:2px 10px;background:#071828;border:1px solid #1E3A5F;border-radius:4px">
-            <span style="font-size:10px;font-weight:600;color:#8AA8C0;letter-spacing:0.06em;text-transform:uppercase">Stbd</span>
+            <span style="font-size:var(--fs-t6);font-weight:600;color:#8AA8C0;letter-spacing:0.06em;text-transform:uppercase">Stbd</span>
           </div>
         </td>`;
         stbdVals.forEach((v,i)=>{
@@ -1123,7 +1148,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       html+=`</tbody></table></div>`;
 
       // Legend
-      html+=`<div style="display:flex;align-items:center;gap:20px;margin-top:10px;font-size:10px">
+      html+=`<div style="display:flex;align-items:center;gap:20px;margin-top:10px;font-size:var(--fs-t6)">
         <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:3px;background:#FFFFFF;border-radius:2px"></div><span style="color:#8AA8C0">Port run hrs</span></div>
         <div style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:3px;background:#7ACFAA;border-radius:2px"></div><span style="color:#8AA8C0">Stbd run hrs</span></div>
         <span style="color:#5A7A90;margin-left:auto">Cumulative hrs · no-report months carry forward last known value</span>
@@ -1220,7 +1245,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       }
       thead+='</tr>';
       function mkrow(label,getter,isDiff){
-        let row=`<td style="background:#0D1F3C;color:#FFFFFF;font-size:12px;text-align:left;padding:5px 10px;border:1px solid #1A2F4A">${label}</td>`;
+        let row=`<td style="background:#0D1F3C;color:#FFFFFF;font-size:var(--fs-t5);text-align:left;padding:6px 10px;border:1px solid #1A2F4A">${label}</td>`;
         let prev=null;
         for(let d=1;d<=dim;d++){
           const isToday=isThisMo&&d===todayD;const isFuture=isThisMo&&d>todayD;
@@ -1243,13 +1268,13 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       ].join('');
       const footer=`<div style="display:flex;gap:8px;margin-top:10px">
         <div style="flex:1;background:#0D1F3C;border:1px solid #1A2F4A;border-radius:6px;padding:10px 14px">
-          <div style="font-size:11px;font-weight:700;color:#FFFFFF;margin-bottom:2px">Port — ${MONTH_NAMES[runhrsMonth]} total</div>
+          <div style="font-size:var(--fs-t5);font-weight:700;color:#FFFFFF;margin-bottom:3px">Port — ${MONTH_NAMES[runhrsMonth]} total</div>
           <div style="font-size:18px;font-weight:700;color:#1A9A6A">—</div></div>
         <div style="flex:1;background:#0D1F3C;border:1px solid #1A2F4A;border-radius:6px;padding:10px 14px">
-          <div style="font-size:11px;font-weight:700;color:#FFFFFF;margin-bottom:2px">Stbd — ${MONTH_NAMES[runhrsMonth]} total</div>
+          <div style="font-size:var(--fs-t5);font-weight:700;color:#FFFFFF;margin-bottom:3px">Stbd — ${MONTH_NAMES[runhrsMonth]} total</div>
           <div style="font-size:18px;font-weight:700;color:#1A9A6A">—</div></div>
         <div style="flex:1;background:#0D1F3C;border:1px solid #1A2F4A;border-radius:6px;padding:10px 14px">
-          <div style="font-size:11px;font-weight:700;color:#FFFFFF;margin-bottom:2px">Port → next service</div>
+          <div style="font-size:var(--fs-t5);font-weight:700;color:#FFFFFF;margin-bottom:3px">Port → next service</div>
           <div style="font-size:18px;font-weight:700;color:#1A9A6A">—</div></div></div>`;
       return `<div style="margin-top:6px">
         <div style="padding:10px 14px;background:#071828;border-bottom:1px solid #1E3A5F"><div style="font-size:15px;font-weight:700;color:#FFFFFF">${boat}</div></div>
@@ -1271,7 +1296,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       let html=`<div style="font-size:11px;font-weight:700;color:#FFFFFF;text-transform:uppercase;letter-spacing:0.08em;margin:${isFirst?'0':'12px 0 7px'}">${label}</div>
       <div style="background:#0D1F3C;border:1px solid #1A2F4A;border-radius:8px;overflow:hidden;margin-bottom:8px">
         <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:#071828;color:#FFFFFF;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
+          <thead><tr style="background:#071828;color:#FFFFFF;font-size:var(--fs-t6);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">
             <th style="padding:6px 10px;border-bottom:1px solid #1E3A5F;width:100px;text-align:left">Boat</th>
             <th style="padding:6px 10px;border-bottom:1px solid #1E3A5F;width:50px;text-align:left">Side</th>
             <th style="padding:6px 10px;border-bottom:1px solid #1E3A5F;text-align:left">Engine Model</th>
@@ -1330,18 +1355,18 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     }
     function bsSidebarGroup(label,boats,key){
       const isOpen=key==='sg'?bsOpenSG:bsOpenSC;
-      let h=`<div onclick="bsToggle('${key}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;cursor:pointer;border-bottom:1px solid #1A2F4A;${key==='sc'?'border-top:1px solid #1E3A5F;':''}"><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8AA8C0">${label}</span><span style="font-size:10px;color:#3A4A60;display:inline-block;transform:rotate(${isOpen?90:0}deg)">&#9658;</span></div>`;
-      h+=`<div style="overflow:hidden;max-height:${isOpen?'600px':'0'}">`,boats.forEach(b=>{const a=b===bsSelected;h+=`<div onclick="bsSelect('${b}')" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:12px;cursor:pointer;border-left:2px solid ${a?'#1A9A5A':'transparent'};background:${a?'#0A1628':'transparent'};color:${a?'#FFFFFF':'#8AA8C0'};font-weight:${a?500:400}"><div style="width:6px;height:6px;border-radius:50%;background:${a?'#1A9A5A':'#3A4A60'};flex-shrink:0"></div>${b}</div>`;});
+      let h=`<div onclick="bsToggle('${key}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px;cursor:pointer;border-bottom:1px solid #1A2F4A;${key==='sc'?'border-top:1px solid #1E3A5F;':''}"><span style="font-size:var(--fs-t6);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8AA8C0">${label}</span><span style="font-size:var(--fs-t6);color:#3A4A60;display:inline-block;transform:rotate(${isOpen?90:0}deg)">&#9658;</span></div>`;
+      h+=`<div style="overflow:hidden;max-height:${isOpen?'600px':'0'}">`,boats.forEach(b=>{const a=b===bsSelected;h+=`<div onclick="bsSelect('${b}')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:var(--fs-t5);cursor:pointer;border-left:2px solid ${a?'#1A9A5A':'transparent'};background:${a?'#0A1628':'transparent'};color:${a?'#FFFFFF':'#8AA8C0'};font-weight:${a?600:400}"><div style="width:6px;height:6px;border-radius:50%;background:${a?'#1A9A5A':'#3A4A60'};flex-shrink:0"></div>${b}</div>`;});
       return h+`</div>`;
     }
     function bsToggle(key){if(key==='sg')bsOpenSG=!bsOpenSG;else bsOpenSC=!bsOpenSC;renderBoatSpecs();}
     function bsSelect(b){bsSelected=b;renderBoatSpecs();}
-    function bsR(label,val){const e=!val||val===''||String(val).toLowerCase()==='na';if(e)return '';return `<div style="display:flex;align-items:baseline;padding:5px 0;border-bottom:0.5px solid #1A2F4A"><span style="font-size:11px;color:#8AA8C0;white-space:nowrap;width:190px;flex-shrink:0">${label}</span><span style="font-size:11px;font-weight:500;color:#FFFFFF">${val}</span></div>`;}
+    function bsR(label,val){const e=!val||val===''||String(val).toLowerCase()==='na';if(e)return '';return `<div style="display:flex;align-items:baseline;padding:6px 0;border-bottom:0.5px solid #1A2F4A"><span style="font-size:var(--fs-t5);color:var(--color-label);white-space:nowrap;width:190px;flex-shrink:0">${label}</span><span style="font-size:var(--fs-t4);font-weight:500;color:var(--color-value)">${val}</span></div>`;}
     function bsInp(label,key,val){
       const k=(key||'').replace(/"/g,'&quot;');
       return `<div style="display:flex;align-items:baseline;padding:5px 0;border-bottom:0.5px solid #1A2F4A;gap:8px"><span style="font-size:11px;color:#8AA8C0;white-space:nowrap;width:190px;flex-shrink:0">${label}</span><input class="cert-ei bs-spec-field" data-bs-key="${k}" value="${rhEscAttr(String(val==null?'':val))}" style="flex:1;min-width:0;font-size:11px"/></div>`;
     }
-    function bsSec(t){return `<div style="font-size:9px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;color:#5A7A8A;padding-bottom:6px;border-bottom:0.5px solid #1A2F4A;margin-bottom:8px;margin-top:18px">${t}</div>`;}
+    function bsSec(t){return `<div style="font-size:var(--fs-t3);font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-heading);padding-bottom:7px;border-bottom:1px solid rgba(91,196,168,0.3);margin-bottom:10px;margin-top:20px">${t}</div>`;}
     function bsHull(h){if(!h)return '';const bg=h==='Aluminium'?'#0D2A10':h==='Wood'?'#2A1A05':'#071828';const bc=h==='Aluminium'?'#1A6A2A':h==='Wood'?'#6A4A0A':'#1A4A6A';return `<span style="display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:500;background:${bg};border:0.5px solid ${bc};color:#FFFFFF;margin-left:8px">${h}</span>`;}
     function bsDetailHTML(name){
       const b=bsMerged(name);if(!b||!Object.keys(b).length)return '<div style="color:#3A4A60;padding:20px">Select a vessel</div>';
@@ -1352,8 +1377,8 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         const disp=fmt?fmt(raw):raw;
         return bsR(label,disp);
       }
-      let h=`<div style="font-size:17px;font-weight:500;color:#FFFFFF;margin-bottom:3px">${name}</div>`;
-      h+=`<div style="font-size:11px;color:#8AA8C0;margin-bottom:20px">${b['company']} &nbsp;&middot;&nbsp; ${b['SC Number']} &nbsp;&middot;&nbsp; MMSI ${b['MMSI Number']}${b['Year Built']?' &nbsp;&middot;&nbsp; Built '+b['Year Built']:''}</div>`;
+      let h=`<div style="font-size:var(--fs-t1);font-weight:700;color:#FFFFFF;margin-bottom:4px">${name}</div>`;
+      h+=`<div style="font-size:var(--fs-t5);color:var(--color-label);margin-bottom:20px">${b['company']} &nbsp;&middot;&nbsp; ${b['SC Number']} &nbsp;&middot;&nbsp; MMSI ${b['MMSI Number']}${b['Year Built']?' &nbsp;&middot;&nbsp; Built '+b['Year Built']:''}</div>`;
       h+=bsSec('Dimensions &amp; registration');
       h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 28px"><div>${row('LOA','LOA',function(v){return v?v+' m':'';})}${row('Breadth','Breadth',function(v){return v?v+' m':'';})}${row('Depth','Depth',function(v){return v?v+' m':'';})}${row('Hull material','Hull')}${row('Class','Class')}${row('Flag','Flag')}</div><div>${row('Pax capacity','Passenger Capacity')}${row('Crew','Crew Capacity')}${row('Mooring buoy','Mooring Buoy')}</div></div>`;
       h+=bsSec('Navigation equipment');
@@ -1599,10 +1624,10 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     }
     function certEditHead(col1='Certificate'){
       return `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #1A2F4A;margin-top:8px">
-        <span style="flex:1;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">${col1}</span>
-        <span style="width:110px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Expiry Date</span>
-        <span style="width:220px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Renewal Window (From – To)</span>
-        <span style="width:60px;flex-shrink:0;font-size:9px;font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase;text-align:right">Doc</span>
+        <span style="flex:1;font-size:var(--fs-t6);font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">${col1}</span>
+        <span style="width:110px;flex-shrink:0;font-size:var(--fs-t6);font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Expiry Date</span>
+        <span style="width:220px;flex-shrink:0;font-size:var(--fs-t6);font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase">Renewal Window (From – To)</span>
+        <span style="width:60px;flex-shrink:0;font-size:var(--fs-t6);font-weight:700;color:#5A7A9A;letter-spacing:0.08em;text-transform:uppercase;text-align:right">Doc</span>
         <span style="width:24px;flex-shrink:0"></span>
       </div>`;
     }
@@ -1623,7 +1648,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           <input type="date" class="cert-ei cert-ei-win" value="${wFrom}" title="Window start"
             onchange="certUpdateField('${esc}','${tabKey}',${idx},'windowFrom',this.value)"
             style="width:104px;flex-shrink:0;color-scheme:dark" />
-          <span style="color:#4A6A8A;font-size:10px;flex-shrink:0">–</span>
+          <span style="color:#4A6A8A;font-size:var(--fs-t6);flex-shrink:0">–</span>
           <input type="date" class="cert-ei cert-ei-win" value="${wTo}" title="Window end"
             onchange="certUpdateField('${esc}','${tabKey}',${idx},'windowTo',this.value)"
             style="width:104px;flex-shrink:0;color-scheme:dark" />
@@ -1815,7 +1840,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         const active=certOvBand===b.id;
         cards+=`<div onclick="certToggleBand('${b.id}')" style="flex:1;min-width:90px;background:${b.bg};border:1px solid ${active?b.color:b.border};border-radius:8px;padding:12px 10px;text-align:center;cursor:pointer;transition:border 0.15s">
           <div style="font-size:22px;font-weight:700;color:${b.color}">${counts[b.id]}</div>
-          <div style="font-size:9px;font-weight:700;color:${b.color};margin-top:2px;text-transform:uppercase;letter-spacing:0.08em">${b.label}</div>
+          <div style="font-size:var(--fs-t6);font-weight:700;color:${b.color};margin-top:2px;text-transform:uppercase;letter-spacing:0.08em">${b.label}</div>
         </div>`;
       });
       cards+=`</div>`;
@@ -2221,11 +2246,11 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
               font-size: 15px !important;
               color: #ffffff !important;
             }
-            body.theme-scifi div[style*="border-radius:7px"] div[style*="font-size:9px"] {
+            body.theme-scifi div[style*="border-radius:7px"] div[style*="font-size:var(--fs-t6)"] {
               font-family: 'Chakra Petch', monospace !important;
               color: #00f0ff !important;
               letter-spacing: 0.2em !important;
-              font-size: 10px !important;
+              font-size: var(--fs-t6) !important;
             }
 
             /* ── COUNT BOXES — EXACT from reference ── */
@@ -2794,7 +2819,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:#0A1E30;border:1.5px solid #2A4A7A;border-radius:8px;box-shadow:0 0 12px rgba(30,80,160,0.3);flex-shrink:0">
       <div id="logo-sg-group-wrap" style="display:flex;align-items:center"></div>
       <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-        <div style="font-size:11px;font-weight:700;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">SG GROUP</div>
+        <div style="font-size:var(--fs-t6);font-weight:700;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">SG GROUP</div>
       </div>
     </div>
 
@@ -2809,8 +2834,8 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:#0A1E30;border:1.5px solid #0D6A7A;border-radius:8px;box-shadow:0 0 12px rgba(13,100,130,0.3);flex-shrink:0">
       <div id="logo-nirix-wrap"></div>
       <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-        <div style="font-size:11px;font-weight:700;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">NIRIX</div>
-        <div id="header-date" style="font-size:9px;color:#8AA8C0;letter-spacing:0.06em"></div>
+        <div style="font-size:var(--fs-t6);font-weight:700;color:#FFFFFF;letter-spacing:3px;text-transform:uppercase">NIRIX</div>
+        <div id="header-date" style="font-size:var(--fs-t6);color:#8AA8C0;letter-spacing:0.06em"></div>
       </div>
     </div>
 
@@ -2821,27 +2846,27 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     <div id="tab-daily" onclick="switchModule('daily')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1E3A5F;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:1">
       <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Daily Reports</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="ttab on" onclick="event.stopPropagation();switchModule('daily');switchDailyView('daily',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Daily view</div>
-        <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('monthly',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Monthly view</div>
+        <div class="ttab on" onclick="event.stopPropagation();switchModule('daily');switchDailyView('daily',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Daily view</div>
+        <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('monthly',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Monthly view</div>
       </div>
     </div>
     <div id="tab-runhrs" onclick="switchModule('runhrs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #0D8A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
       <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Engine Run-hrs Records</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="stab on" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('fleet',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Fleet monthly overview</div>
-        <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('runhrs',this)" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0">Monthly running hours</div>
+        <div class="stab on" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('fleet',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Fleet monthly overview</div>
+        <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('runhrs',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Monthly running hours</div>
       </div>
     </div>
     <div id="tab-boatspecs" onclick="switchModule('boatspecs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1A6A3A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
       <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Boat Tech. Specs</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="btab on" style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0;color:#FFFFFF;font-weight:500;background:#0D2A1A;border-bottom:2px solid #1A9A5A">All vessels</div>
+        <div class="btab on" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0;color:#FFFFFF;font-weight:500;background:#0D2A1A;border-bottom:2px solid #1A9A5A">All vessels</div>
       </div>
     </div>
     <div id="tab-certs" onclick="switchModule('certs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #2A6A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
       <div style="font-size:16px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Certification</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div style="padding:5px 12px;font-size:11px;border-radius:4px 4px 0 0;color:#5AB8E8;font-weight:500;background:#081828;border-bottom:2px solid #3A8FBF">Compliance</div>
+        <div style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0;color:#5AB8E8;font-weight:500;background:#081828;border-bottom:2px solid #3A8FBF">Compliance</div>
       </div>
     </div>
     
@@ -2891,15 +2916,15 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           <div id="clp-tab" onclick="certSelectCompany('compliance')"
             style="display:flex;align-items:center;padding:10px 14px;cursor:pointer;border-left:3px solid transparent;transition:background 0.15s"
             onmouseover="this.style.background='rgba(58,143,191,0.07)'" onmouseout="this.style.background='transparent'">
-            <span style="font-size:12px;font-weight:600;color:#FFFFFF">Compliance Overview</span>
+            <span style="font-size:var(--fs-t5);font-weight:600;color:#FFFFFF">Compliance Overview</span>
           </div>
           <!-- Sea Cabbie -->
           <div style="margin-top:4px">
             <div id="sc-tab" onclick="certSelectCompany('seacabbie')"
               style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-left:3px solid transparent;transition:background 0.15s"
               onmouseover="this.style.background='rgba(58,143,191,0.07)'" onmouseout="this.style.background='transparent'">
-              <span style="font-size:12px;font-weight:600;color:#FFFFFF">Sea Cabbie Certs</span>
-              <span id="sc-arrow" style="font-size:10px;color:#6A8AAA">▶</span>
+              <span style="font-size:var(--fs-t5);font-weight:600;color:#FFFFFF">Sea Cabbie Certs</span>
+              <span id="sc-arrow" style="font-size:var(--fs-t6);color:#6A8AAA">▶</span>
             </div>
             <div id="sc-boats" style="display:none;padding:2px 0 6px 24px"></div>
           </div>
@@ -2908,8 +2933,8 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
             <div id="sgs-tab" onclick="certSelectCompany('sgshipping')"
               style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-left:3px solid transparent;transition:background 0.15s"
               onmouseover="this.style.background='rgba(58,143,191,0.07)'" onmouseout="this.style.background='transparent'">
-              <span style="font-size:12px;font-weight:600;color:#FFFFFF">SG Shipping Certs</span>
-              <span id="sgs-arrow" style="font-size:10px;color:#6A8AAA">▶</span>
+              <span style="font-size:var(--fs-t5);font-weight:600;color:#FFFFFF">SG Shipping Certs</span>
+              <span id="sgs-arrow" style="font-size:var(--fs-t6);color:#6A8AAA">▶</span>
             </div>
             <div id="sgs-boats" style="display:none;padding:2px 0 6px 24px"></div>
           </div>
@@ -2918,12 +2943,12 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       <!-- Right Panel -->
       <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
         <div style="padding:12px 20px 0;border-bottom:1px solid #1E3A5F;flex-shrink:0;background:#080F1E">
-          <div id="certs-boat-title" style="font-size:14px;font-weight:700;color:#FFFFFF;margin-bottom:10px">Compliance Overview</div>
+          <div id="certs-boat-title" style="font-size:var(--fs-t2);font-weight:700;color:#FFFFFF;margin-bottom:10px">Compliance Overview</div>
           <div id="cert-subtabs" style="display:none;gap:4px">
-            <div class="ctab on" id="ctab-class"    onclick="certSwitchTab('class')"    style="padding:7px 16px;font-size:11px;border-radius:6px 6px 0 0">Class Certification</div>
-            <div class="ctab"    id="ctab-hcl"       onclick="certSwitchTab('hcl')"       style="padding:7px 16px;font-size:11px;border-radius:6px 6px 0 0">HCL</div>
-            <div class="ctab"    id="ctab-radio"     onclick="certSwitchTab('radio')"     style="padding:7px 16px;font-size:11px;border-radius:6px 6px 0 0">Radio &amp; LSA FFE</div>
-            <div class="ctab"    id="ctab-insurance" onclick="certSwitchTab('insurance')" style="padding:7px 16px;font-size:11px;border-radius:6px 6px 0 0">Insurance</div>
+            <div class="ctab on" id="ctab-class"    onclick="certSwitchTab('class')"    style="padding:7px 16px;font-size:var(--fs-t5);border-radius:6px 6px 0 0">Class Certification</div>
+            <div class="ctab"    id="ctab-hcl"       onclick="certSwitchTab('hcl')"       style="padding:7px 16px;font-size:var(--fs-t5);border-radius:6px 6px 0 0">HCL</div>
+            <div class="ctab"    id="ctab-radio"     onclick="certSwitchTab('radio')"     style="padding:7px 16px;font-size:var(--fs-t5);border-radius:6px 6px 0 0">Radio &amp; LSA FFE</div>
+            <div class="ctab"    id="ctab-insurance" onclick="certSwitchTab('insurance')" style="padding:7px 16px;font-size:var(--fs-t5);border-radius:6px 6px 0 0">Insurance</div>
           </div>
         </div>
         <div id="certs-right-body" style="flex:1;overflow-y:auto;padding:18px 20px">
@@ -2956,7 +2981,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:13px 17px 10px;border-bottom:1px solid #1E3A5F;flex-shrink:0">
       <div>
         <div id="modal-boat" style="font-size:13px;font-weight:600;color:#FFFFFF"></div>
-        <div id="modal-date" style="font-size:10px;color:#8AA8C0;margin-top:3px"></div>
+        <div id="modal-date" style="font-size:var(--fs-t6);color:#8AA8C0;margin-top:3px"></div>
         <div id="modal-badge" style="margin-top:5px"></div>
       </div>
       <button onclick="closeModal()" style="background:none;border:none;color:#8AA8C0;font-size:18px;cursor:pointer;padding:0 0 0 10px;line-height:1"
@@ -2981,8 +3006,8 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
     <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid #1E3A5F;flex-shrink:0">
       <div>
         <div id="certDocTitle" style="font-size:13px;font-weight:700;color:#FFFFFF"></div>
-        <div id="certDocSub"   style="font-size:10px;color:#8AA8C0;margin-top:3px"></div>
-        <div id="certDocCategory" style="display:inline-block;margin-top:6px;padding:2px 9px;background:#0D2A3A;border:0.5px solid #2A5A7A;border-radius:4px;font-size:9px;font-weight:700;color:#5AB8E8;letter-spacing:0.1em;text-transform:uppercase">Certificate</div>
+        <div id="certDocSub"   style="font-size:var(--fs-t6);color:#8AA8C0;margin-top:3px"></div>
+        <div id="certDocCategory" style="display:inline-block;margin-top:6px;padding:2px 9px;background:#0D2A3A;border:0.5px solid #2A5A7A;border-radius:4px;font-size:var(--fs-t6);font-weight:700;color:#5AB8E8;letter-spacing:0.1em;text-transform:uppercase">Certificate</div>
       </div>
       <button onclick="closeCertDoc()" style="background:none;border:none;color:#6A8AAA;font-size:20px;cursor:pointer;line-height:1;padding:0 0 0 12px"
         onmouseover="this.style.color='#FFF'" onmouseout="this.style.color='#6A8AAA'">&#x2715;</button>
