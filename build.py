@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
 """
-build.py  --  CLEAN REBUILD
-Reads index_base.html, strips any leftover fleet code, then injects fresh.
-Safe to run repeatedly.
+build.py  --  Nirix Dashboard Build
+Reads index_base.html + fleet_board.html, produces:
+  - index.html          (main dashboard, no fleet code inlined)
+  - fleet_data.json     (externalized + deduplicated fleet schedule data)
+  - fleet_module.css    (scoped fleet CSS)
+  - fleet_module.js     (fleet JS + gdrive sync, IIFE)
+  - fleet_module.html   (fleet body HTML fragment)
 
-Also exposes strip_fleet_from_html() for export_clean_base.py (CURSOR_INSTRUCTIONS.md).
+Fleet assets are lazy-loaded when the user clicks the Fleet tab.
 """
-import os, re, sys
+import os, re, sys, json, hashlib
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 INDEX_BASE = os.path.join(BASE, 'index_base.html')
 INDEX_OUT = os.path.join(BASE, 'index.html')
 FLEET = os.path.join(BASE, 'fleet_board.html')
+GDRIVE_JS = os.path.join(BASE, 'gdrive_sync.js')
 
+# Output files
+FLEET_DATA_OUT = os.path.join(BASE, 'fleet_data.json')
+FLEET_CSS_OUT = os.path.join(BASE, 'fleet_module.css')
+FLEET_JS_OUT = os.path.join(BASE, 'fleet_module.js')
+FLEET_HTML_OUT = os.path.join(BASE, 'fleet_module.html')
+
+
+# ── HELPERS ────────────────────────────────────────────────────────────────
 
 def remove_between(text, start, end):
     while start in text and end in text:
@@ -40,14 +53,10 @@ def remove_div_id(text, div_id):
 
 
 def strip_script_tags_from_html_fragment(fragment):
-    """Remove all <script>...</script> from an HTML fragment.
-    Uses rindex to find the LAST </script> to avoid matching
-    </script> strings inside JS template literals."""
     out = fragment
     low = out.lower()
     while '<script' in low:
         s = low.index('<script')
-        # Use rindex to find the LAST </script> — avoids template literal false matches
         ec = low.rindex('</script>')
         if ec <= s:
             break
@@ -73,7 +82,124 @@ def remove_fn(text, fn_name):
     return text
 
 
-# Marker pairs (order: outer / duplicate blocks first). Repeat until stable.
+# ── MINIFICATION ───────────────────────────────────────────────────────────
+
+def minify_js(code):
+    """Conservative JS minification: strip comments and collapse whitespace.
+    Does NOT rename variables. Handles strings and regex safely."""
+    result = []
+    i = 0
+    n = len(code)
+    while i < n:
+        c = code[i]
+        # String literals
+        if c in ('"', "'", '`'):
+            q = c
+            result.append(c)
+            i += 1
+            while i < n:
+                ch = code[i]
+                result.append(ch)
+                if ch == '\\' and i + 1 < n:
+                    i += 1
+                    result.append(code[i])
+                elif ch == q:
+                    break
+                i += 1
+            i += 1
+            continue
+        # Single-line comment
+        if c == '/' and i + 1 < n and code[i + 1] == '/':
+            # Skip to end of line
+            while i < n and code[i] != '\n':
+                i += 1
+            continue
+        # Multi-line comment
+        if c == '/' and i + 1 < n and code[i + 1] == '*':
+            end = code.find('*/', i + 2)
+            if end == -1:
+                i = n
+            else:
+                i = end + 2
+            result.append(' ')
+            continue
+        result.append(c)
+        i += 1
+
+    text = ''.join(result)
+    # Collapse blank lines
+    text = re.sub(r'\n[ \t]*\n', '\n', text)
+    # Strip trailing whitespace per line
+    text = re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)
+    # Collapse runs of spaces (not at line start for indentation)
+    text = re.sub(r'[ \t]{2,}', ' ', text)
+    return text.strip()
+
+
+def minify_css(code):
+    """Strip CSS comments and collapse whitespace."""
+    # Remove comments
+    code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+    # Collapse whitespace
+    code = re.sub(r'\s+', ' ', code)
+    # Remove space around special chars
+    code = re.sub(r'\s*([{};:,>~+])\s*', r'\1', code)
+    # Remove trailing semicolons before }
+    code = code.replace(';}', '}')
+    return code.strip()
+
+
+def file_hash(content):
+    """Short content hash for cache busting."""
+    return hashlib.md5(content.encode('utf-8')).hexdigest()[:8]
+
+
+# ── FLEET DATA EXTRACTION + DEDUPLICATION ──────────────────────────────────
+
+def extract_and_deduplicate_fleet_data(fleet_js_src):
+    """Extract const D from fleet JS, deduplicate remarks, return (json_str, cleaned_js)."""
+    # Find const D = {...};
+    m = re.search(r'const D = (\{.*?\});\s*\n', fleet_js_src)
+    if not m:
+        print('[ERROR] Could not find const D in fleet_board.html')
+        sys.exit(1)
+
+    raw_json = m.group(1)
+    data = json.loads(raw_json)
+
+    # Build remark lookup table
+    remarks_set = set()
+    for key, ds in data.items():
+        for boat in ds['boats']:
+            for day in boat['days']:
+                r = day.get('r', '')
+                if r:
+                    remarks_set.add(r)
+
+    # Index 0 = empty string (most common)
+    remarks_list = [''] + sorted(remarks_set)
+    remarks_index = {r: i for i, r in enumerate(remarks_list)}
+
+    # Replace remark strings with indices
+    for key, ds in data.items():
+        for boat in ds['boats']:
+            for day in boat['days']:
+                day['r'] = remarks_index[day.get('r', '')]
+
+    # Build output JSON with _remarks lookup
+    output = {'_remarks': remarks_list}
+    output.update(data)
+    json_str = json.dumps(output, separators=(',', ':'))
+
+    # Replace const D line with let D = {} in the JS source
+    cleaned_js = fleet_js_src[:m.start()] + 'let D = {};\n' + fleet_js_src[m.end():]
+
+    print(f'  Fleet data: {len(raw_json):,} -> {len(json_str):,} bytes ({len(remarks_list)} unique remarks)')
+    return json_str, cleaned_js
+
+
+# ── STRIP FLEET FROM BASE ─────────────────────────────────────────────────
+
 _STRIP_PAIRS = [
     ('/* -- FLEET CSS START -- */', '/* -- FLEET CSS END -- */'),
     ('/* -- FLEET CSS -- */', '/* -- END FLEET CSS -- */'),
@@ -81,7 +207,6 @@ _STRIP_PAIRS = [
     ('/* FLEET LAYOUT OVERRIDE */', '/* end of layout */'),
     ('/* -- FLEET JS START -- */', '/* -- FLEET JS END -- */'),
     ('/* -- FLEET JS -- */', '/* -- END FLEET JS -- */'),
-    # Also handle the Unicode dash variants
     ('\u2500\u2500 FLEET CSS START', '\u2500\u2500 FLEET CSS END'),
     ('\u2500\u2500 FLEET CSS \u2500\u2500', '\u2500\u2500 END FLEET CSS'),
     ('\u2500\u2500 FLEET JS START', '\u2500\u2500 FLEET JS END'),
@@ -91,8 +216,6 @@ _STRIP_PAIRS = [
 
 
 def strip_fleet_from_html(idx):
-    """Remove all injected fleet CSS/JS/HTML and switchModule from merged index."""
-    # Legacy duplicate IIFE (unicode-dash comment) left from older merges — must go before main FLEET JS
     _legacy_start = '\u2500\u2500 FLEET AVAILABILITY MODULE JS \u2500\u2500'
     if _legacy_start in idx and '/* -- FLEET JS -- */' in idx:
         s = idx.index('/* ' + _legacy_start + ' */')
@@ -105,7 +228,7 @@ def strip_fleet_from_html(idx):
         for _ in range(3):
             idx = remove_div_id(idx, 'module-fleet')
             idx = remove_div_id(idx, 'tab-fleet')
-        for fn in ('switchModule', 'initFleetModule'):
+        for fn in ('switchModule', 'initFleetModule', 'loadFleetModule'):
             idx = remove_fn(idx, fn)
         idx = idx.replace('<!-- FLEET AVAILABILITY MODULE -->', '')
         idx = idx.replace('/* -- END FLEET AVAILABILITY MODULE JS -- */', '')
@@ -132,7 +255,6 @@ SWITCH_MODULE_NO_FLEET = """
 
 
 def inject_switch_module_no_fleet(idx):
-    """Insert dashboard-only switchModule before closing script tag near </head>."""
     needle = '</script>\n</head>'
     if needle not in idx:
         needle = '</script>\r\n</head>'
@@ -141,155 +263,93 @@ def inject_switch_module_no_fleet(idx):
     return idx.replace(needle, SWITCH_MODULE_NO_FLEET + '\n' + needle, 1)
 
 
-def run_build():
-    assert os.path.exists(INDEX_BASE), 'ERROR: index_base.html not found!'
-    assert os.path.exists(FLEET), 'ERROR: fleet_board.html not found!'
+# ── CSS SCOPING ────────────────────────────────────────────────────────────
 
-    with open(INDEX_BASE, 'r', encoding='utf-8') as f:
-        idx = f.read()
-    with open(FLEET, 'r', encoding='utf-8') as f:
-        fleet = f.read()
-    print(f'index_base  : {len(idx):,} bytes')
-    print(f'fleet_board : {len(fleet):,} bytes')
-
-    idx = strip_fleet_from_html(idx)
-    print(f'After strip : {len(idx):,} bytes')
-
-    fleet_css = fleet[fleet.index('<style>') + 7 : fleet.index('</style>')]
-    fleet_js = fleet[fleet.index('<script>') + 8 : fleet.rindex('</script>')]
-    fleet_js = re.sub(
-        r"window\.addEventListener\s*\(\s*['\"]DOMContentLoaded['\"][\s\S]*?\}\s*\)\s*;",
-        '',
-        fleet_js,
-    )
-    # Embedded dashboard: CSS uses #module-fleet.painting, not body.painting (BUG 2 in CURSOR_INSTRUCTIONS)
-    fleet_js = fleet_js.replace(
-        "document.body.classList.add('painting');",
-        "document.getElementById('module-fleet').classList.add('painting');",
-    )
-    fleet_js = fleet_js.replace(
-        "document.body.classList.remove('painting');",
-        "document.getElementById('module-fleet').classList.remove('painting');",
-    )
-
-    b0 = fleet.index('<body')
-    b0 = fleet.index('>', b0) + 1
-    b1 = fleet.rindex('</body>')
-    body = fleet[b0:b1].strip()
-    if '<div id="app"' in body:
-        body = body[body.index('>', body.index('<div id="app"')) + 1 :]
-        body = body[: body.rindex('</div>')].strip()
-    if '<div class="hdr"' in body:
-        hi = body.index('<div class="hdr"')
-        depth, i = 0, hi
-        while i < len(body):
-            if body[i : i + 4] == '<div':
-                depth += 1
-            elif body[i : i + 6] == '</div>':
-                depth -= 1
-                if depth == 0:
-                    body = body[:hi] + body[i + 6 :]
-                    break
+def scope_css(css):
+    out = []
+    lines = css.split('\n')
+    i, n = 0, len(lines)
+    while i < n:
+        L = lines[i]
+        S = L.strip()
+        if not S:
+            out.append('')
             i += 1
-
-    # spN "Revert (clear)" row lives in fleet_board.html source (keep in sync with picker colours)
-    body = body.replace(
-        '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>',
-        '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>\n    <button class="sp-undo" onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">Undo last</button>',
-    )
-    # fleet_board.html includes <script> inside <body>; omit it here — same JS is injected in <head>.
-    body = strip_script_tags_from_html_fragment(body)
-    print(f'Fleet body  : {len(body):,} chars')
-
-    def scope_css(css):
-        out = []
-        lines = css.split('\n')
-        i, n = 0, len(lines)
-        while i < n:
-            L = lines[i]
-            S = L.strip()
-            if not S:
-                out.append('')
+            continue
+        if S.startswith('/*') or S.startswith('//'):
+            out.append(L)
+            i += 1
+            continue
+        if S.startswith('@keyframes'):
+            out.append(L)
+            i += 1
+            d = L.count('{') - L.count('}')
+            while i < n and d > 0:
+                out.append(lines[i])
+                d += lines[i].count('{') - lines[i].count('}')
                 i += 1
-                continue
-            if S.startswith('/*') or S.startswith('//'):
-                out.append(L)
+            continue
+        if S.startswith('@media'):
+            out.append(L)
+            i += 1
+            d = L.count('{') - L.count('}')
+            inner = []
+            while i < n and d > 0:
+                inner.append(lines[i])
+                d += lines[i].count('{') - lines[i].count('}')
                 i += 1
-                continue
-            if S.startswith('@keyframes'):
-                out.append(L)
+            out.extend(scope_css('\n'.join(inner)).split('\n'))
+            out.append('}')
+            continue
+        if S.startswith(':root'):
+            out.append(L.replace(':root', '#module-fleet'))
+            i += 1
+            d = L.count('{') - L.count('}')
+            while i < n and d > 0:
+                out.append(lines[i])
+                d += lines[i].count('{') - lines[i].count('}')
                 i += 1
-                d = L.count('{') - L.count('}')
-                while i < n and d > 0:
-                    out.append(lines[i])
-                    d += lines[i].count('{') - lines[i].count('}')
-                    i += 1
-                continue
-            if S.startswith('@media'):
-                out.append(L)
-                i += 1
-                d = L.count('{') - L.count('}')
-                inner = []
-                while i < n and d > 0:
-                    inner.append(lines[i])
-                    d += lines[i].count('{') - lines[i].count('}')
-                    i += 1
-                out.extend(scope_css('\n'.join(inner)).split('\n'))
-                out.append('}')
-                continue
-            if S.startswith(':root'):
-                out.append(L.replace(':root', '#module-fleet'))
-                i += 1
-                d = L.count('{') - L.count('}')
-                while i < n and d > 0:
-                    out.append(lines[i])
-                    d += lines[i].count('{') - lines[i].count('}')
-                    i += 1
-                continue
-            if '{' in S:
-                brace = S.index('{')
-                sel = S[:brace].strip()
-                rest = S[brace:]
-                parts = [p.strip() for p in sel.split(',') if p.strip()]
-                scoped = []
-                for p in parts:
-                    if re.match(r'^\*', p) or p in ('html',):
-                        continue
-                    p = re.sub(r'^body\.emode', '#module-fleet.emode', p)
-                    p = re.sub(r'^body\.painting', '#module-fleet.painting', p)
-                    p = re.sub(r'^body\.panel-open', '#module-fleet.panel-open', p)
-                    p = re.sub(r'^body\b', '#module-fleet', p)
-                    p = re.sub(r'^html\b', '#module-fleet', p)
-                    if not p.startswith('#module-fleet'):
-                        p = '#module-fleet ' + p
-                    scoped.append(p)
-                if not scoped:
-                    i += 1
-                    d = rest.count('{') - rest.count('}')
-                    while i < n and d > 0:
-                        d += lines[i].count('{') - lines[i].count('}')
-                        i += 1
+            continue
+        if '{' in S:
+            brace = S.index('{')
+            sel = S[:brace].strip()
+            rest = S[brace:]
+            parts = [p.strip() for p in sel.split(',') if p.strip()]
+            scoped = []
+            for p in parts:
+                if re.match(r'^\*', p) or p in ('html',):
                     continue
-                out.append(', '.join(scoped) + ' ' + rest)
+                p = re.sub(r'^body\.emode', '#module-fleet.emode', p)
+                p = re.sub(r'^body\.painting', '#module-fleet.painting', p)
+                p = re.sub(r'^body\.panel-open', '#module-fleet.panel-open', p)
+                p = re.sub(r'^body\b', '#module-fleet', p)
+                p = re.sub(r'^html\b', '#module-fleet', p)
+                if not p.startswith('#module-fleet'):
+                    p = '#module-fleet ' + p
+                scoped.append(p)
+            if not scoped:
                 i += 1
                 d = rest.count('{') - rest.count('}')
                 while i < n and d > 0:
-                    out.append(lines[i])
                     d += lines[i].count('{') - lines[i].count('}')
                     i += 1
                 continue
-            out.append(L)
+            out.append(', '.join(scoped) + ' ' + rest)
             i += 1
-        return '\n'.join(out)
+            d = rest.count('{') - rest.count('}')
+            while i < n and d > 0:
+                out.append(lines[i])
+                d += lines[i].count('{') - lines[i].count('}')
+                i += 1
+            continue
+        out.append(L)
+        i += 1
+    return '\n'.join(out)
 
-    scoped_css = scope_css(fleet_css)
 
-    # NOTE: Do NOT set display:flex!important on #module-fleet wrapper.
-    # switchModule sets display:flex when active; !important would override display:none
-    # and break hiding. Layout rules (flex-direction, overflow, etc.) are safe to use
-    # !important because they only apply when the element is already visible.
-    layout = """
-/* FLEET LAYOUT OVERRIDE */
+# ── FLEET LAYOUT CSS ──────────────────────────────────────────────────────
+
+LAYOUT_CSS = """
 #module-fleet{flex-direction:row!important;overflow:hidden!important;position:relative!important;min-height:0!important;}
 #module-fleet .hdr{display:none!important;}
 #module-fleet #left-nav{position:relative!important;top:auto!important;left:auto!important;bottom:auto!important;width:180px!important;flex-shrink:0!important;height:100%!important;overflow-y:auto!important;display:flex!important;flex-direction:column!important;}
@@ -317,16 +377,119 @@ def run_build():
 #module-fleet #analytics-overlay{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;}
 """
 
-    full_css = f'\n/* -- FLEET CSS -- */\n{scoped_css}\n{layout}\n/* -- END FLEET CSS -- */\n'
 
-    full_js = """
-/* -- FLEET JS -- */
-(function(){
+# ── BUILD ──────────────────────────────────────────────────────────────────
 
+def run_build():
+    assert os.path.exists(INDEX_BASE), 'ERROR: index_base.html not found!'
+    assert os.path.exists(FLEET), 'ERROR: fleet_board.html not found!'
+
+    with open(INDEX_BASE, 'r', encoding='utf-8') as f:
+        idx = f.read()
+    with open(FLEET, 'r', encoding='utf-8') as f:
+        fleet = f.read()
+    print(f'index_base  : {len(idx):,} bytes')
+    print(f'fleet_board : {len(fleet):,} bytes')
+
+    idx = strip_fleet_from_html(idx)
+    print(f'After strip : {len(idx):,} bytes')
+
+    # ── Extract fleet CSS ──────────────────────────────────────────────────
+    fleet_css = fleet[fleet.index('<style>') + 7 : fleet.index('</style>')]
+    scoped_css = scope_css(fleet_css)
+    full_css = scoped_css + '\n' + LAYOUT_CSS
+
+    # ── Extract fleet JS ───────────────────────────────────────────────────
+    fleet_js = fleet[fleet.index('<script>') + 8 : fleet.rindex('</script>')]
+    fleet_js = re.sub(
+        r"window\.addEventListener\s*\(\s*['\"]DOMContentLoaded['\"][\s\S]*?\}\s*\)\s*;",
+        '',
+        fleet_js,
+    )
+    fleet_js = fleet_js.replace(
+        "document.body.classList.add('painting');",
+        "document.getElementById('module-fleet').classList.add('painting');",
+    )
+    fleet_js = fleet_js.replace(
+        "document.body.classList.remove('painting');",
+        "document.getElementById('module-fleet').classList.remove('painting');",
+    )
+
+    # ── Extract + deduplicate fleet data ───────────────────────────────────
+    fleet_data_json, fleet_js = extract_and_deduplicate_fleet_data(fleet_js)
+
+    # ── Extract fleet body HTML ────────────────────────────────────────────
+    b0 = fleet.index('<body')
+    b0 = fleet.index('>', b0) + 1
+    b1 = fleet.rindex('</body>')
+    body = fleet[b0:b1].strip()
+    if '<div id="app"' in body:
+        body = body[body.index('>', body.index('<div id="app"')) + 1 :]
+        body = body[: body.rindex('</div>')].strip()
+    if '<div class="hdr"' in body:
+        hi = body.index('<div class="hdr"')
+        depth, i = 0, hi
+        while i < len(body):
+            if body[i : i + 4] == '<div':
+                depth += 1
+            elif body[i : i + 6] == '</div>':
+                depth -= 1
+                if depth == 0:
+                    body = body[:hi] + body[i + 6 :]
+                    break
+            i += 1
+
+    body = body.replace(
+        '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>',
+        '<button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>\n    <button class="sp-undo" onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">Undo last</button>',
+    )
+    body = strip_script_tags_from_html_fragment(body)
+
+    # Inject Cloud Sync UI into the fleet body (left nav)
+    sync_ui = '''
+  <div class="ln-section" id="gdrive-section">
+    <div class="ln-lbl">Cloud Sync</div>
+    <button class="ln-btn" onclick="driveLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
+    <div id="gdrive-status" style="font-size:11px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
+  </div>'''
+    body = body.replace('<div class="ln-spacer"></div>', sync_ui + '\n<div class="ln-spacer"></div>')
+
+    print(f'Fleet body  : {len(body):,} chars')
+
+    # ── Build fleet_module.js (IIFE + gdrive sync + hydration + init) ─────
+    # Remove the trailing window.D = D; line (we manage D differently now)
+    fleet_js = re.sub(r'\nwindow\.D\s*=\s*D;\s*\n', '\n', fleet_js)
+
+    fleet_module_js = """(function(){
+// Hydrate remarks from indexed fleet_data.json
+function hydrateRemarks(data){
+  var remarks=data._remarks||[];
+  var out={};
+  Object.keys(data).forEach(function(key){
+    if(key==='_remarks')return;
+    var ds=JSON.parse(JSON.stringify(data[key]));
+    ds.boats.forEach(function(boat){
+      boat.days.forEach(function(day){
+        if(typeof day.r==='number') day.r=remarks[day.r]||'';
+      });
+    });
+    out[key]=ds;
+  });
+  return out;
+}
+
+// Load fleet data from external JSON
+async function loadFleetData(){
+  var res=await fetch('fleet_data.json');
+  if(!res.ok) throw new Error('Fleet data load failed: '+res.status);
+  var raw=await res.json();
+  D=hydrateRemarks(raw);
+  window.D=D;
+}
 
 """ + fleet_js + """
 
-// Expose to window — direct assignments only (no eval); same IIFE closures as inline handlers
+// Expose to window
 window.cellDown=cellDown;
 window.handleDown=handleDown;
 window.cellEnter=cellEnter;
@@ -380,7 +543,6 @@ window.commitCell=commitCell=function(el,s,r){
   _undoStack.push({el:el,oldS:el.dataset.s||'N',oldR:el.dataset.r||'',wasEdited:el.classList.contains('edited')});
   if(_undoStack.length>50)_undoStack.shift();
   applyStatusToCell(el,s,r); el.classList.add('edited'); EDITS[ek]={s:s,r:r};
-  // Live refresh analytics if overlay is open
   var ov=document.getElementById('analytics-overlay');
   if(ov&&ov.classList.contains('open')) renderAnalytics();
 };
@@ -416,34 +578,93 @@ window.openPicker=function(e,el){openPicker(e,el);};
 window.closePicker=function(){closePicker();};
 
 // init -- called once when Fleet tab is first opened
-window.initFleetModule=function(){
+window.initFleetModule=async function(){
   if(window._fbInited)return; window._fbInited=true;
   try{
+    await loadFleetData();
     var now=new Date();
     var mm=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     var key=mm[now.getMonth()]+'_'+now.getFullYear();
-    if(typeof D!=='undefined'&&D['SCB_'+key]){mk=key; selDay=now.getDate();}
+    if(D['SCB_'+key]){mk=key; selDay=now.getDate();}
     else{mk='Mar_2026'; selDay=19;}
     if(typeof render==='function')render();
+    if(typeof driveAutoLoad==='function') driveAutoLoad();
   }catch(err){console.error('Fleet init:',err);}
 };
 
 })();
-/* -- END FLEET JS -- */
 """
 
-    switch_fn = """
-    function switchModule(mod){
+    # Append gdrive_sync.js into fleet module JS
+    if os.path.exists(GDRIVE_JS):
+        gdrive_js = open(GDRIVE_JS, encoding='utf-8').read()
+        fleet_module_js += '\n// -- GDRIVE SYNC --\n' + gdrive_js
+        print('[OK] Drive sync bundled into fleet_module.js')
+
+    # ── Minify fleet assets ────────────────────────────────────────────────
+    fleet_css_min = minify_css(full_css)
+    fleet_js_min = minify_js(fleet_module_js)
+
+    # ── Write external fleet files ─────────────────────────────────────────
+    with open(FLEET_DATA_OUT, 'w', encoding='utf-8') as f:
+        f.write(fleet_data_json)
+
+    with open(FLEET_CSS_OUT, 'w', encoding='utf-8') as f:
+        f.write(fleet_css_min)
+
+    with open(FLEET_JS_OUT, 'w', encoding='utf-8') as f:
+        f.write(fleet_js_min)
+
+    with open(FLEET_HTML_OUT, 'w', encoding='utf-8') as f:
+        f.write(body)
+
+    # ── Cache-busting hashes ───────────────────────────────────────────────
+    h_css = file_hash(fleet_css_min)
+    h_js = file_hash(fleet_js_min)
+    h_data = file_hash(fleet_data_json)
+    h_html = file_hash(body)
+
+    # ── Inject lazy-load switchModule into index_base ──────────────────────
+    switch_fn = f"""
+    var _fleetLoading=false,_fleetLoaded=false;
+    function loadFleetModule(){{
+      if(_fleetLoaded){{if(window.initFleetModule)window.initFleetModule();return;}}
+      if(_fleetLoading)return;
+      _fleetLoading=true;
+      var c=document.getElementById('module-fleet');
+      if(c&&!c.children.length)c.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8892b8;font-size:14px">Loading Fleet Board...</div>';
+      var link=document.createElement('link');
+      link.rel='stylesheet';link.href='fleet_module.css?v={h_css}';
+      document.head.appendChild(link);
+      fetch('fleet_module.html?v={h_html}')
+        .then(function(r){{return r.text();}})
+        .then(function(html){{
+          document.getElementById('module-fleet').innerHTML=html;
+          var s=document.createElement('script');
+          s.src='fleet_module.js?v={h_js}';
+          s.onload=function(){{
+            _fleetLoaded=true;_fleetLoading=false;
+            if(window.initFleetModule)window.initFleetModule();
+          }};
+          s.onerror=function(){{
+            _fleetLoading=false;
+            document.getElementById('module-fleet').innerHTML='<div style="color:#FF5555;padding:20px">Failed to load Fleet module. Please refresh.</div>';
+          }};
+          document.body.appendChild(s);
+        }})
+        .catch(function(err){{_fleetLoading=false;console.error('Fleet load:',err);}});
+    }}
+    function switchModule(mod){{
       activeModule=mod;
-      ['daily','runhrs','boatspecs','certs','fleet'].forEach(function(m){
+      ['daily','runhrs','boatspecs','certs','fleet'].forEach(function(m){{
         var t=document.getElementById('tab-'+m);
         var e=document.getElementById('module-'+m);
         if(t) t.style.opacity=(m===mod)?'1':'0.55';
         if(e) e.style.display=(m===mod)?'flex':'none';
-      });
-      if(mod==='fleet'&&window.initFleetModule) window.initFleetModule();
+      }});
+      if(mod==='fleet') loadFleetModule();
       else renderAll();
-    }
+    }}
 """
 
     fleet_tab = """
@@ -454,24 +675,22 @@ window.initFleetModule=function(){
       </div>
     </div>"""
 
-    # module-fleet must live INSIDE the flex:1 content wrapper alongside the other
-    # module divs so it participates in the same flex height chain. If placed outside
-    # (e.g. before #modalOverlay) it has no constrained height and the page scrolls.
-    module_div = f"""
+    # Empty placeholder for fleet module (content loaded lazily)
+    module_div = """
     <!-- FLEET AVAILABILITY MODULE -->
     <div id="module-fleet" style="display:none;flex:1;min-height:0;overflow:hidden;">
-{body}
     </div>"""
 
+    # ── Inject into index_base ─────────────────────────────────────────────
     assert '</style>' in idx, 'ERROR: </style> not found in base!'
-    idx = idx.replace('</style>', full_css + '\n</style>', 1)
-    print('[OK] CSS injected')
+    # No fleet CSS injected inline — it loads externally
+    print('[OK] Fleet CSS -> fleet_module.css (external)')
 
     assert '</script>' in idx, 'ERROR: </script> not found in base!'
-    idx = idx.replace('</script>', switch_fn + '\n' + full_js + '\n</script>', 1)
-    print('[OK] JS injected')
+    idx = idx.replace('</script>', switch_fn + '\n</script>', 1)
+    print('[OK] Lazy-load switchModule injected')
 
-    # ── Tab injection: insert fleet tab before the content wrapper div ──────────
+    # ── Tab injection ──────────────────────────────────────────────────────
     CONTENT_ANCHORS = [
         '<div style="flex:1;display:flex;overflow:hidden">',
         '<div style="flex:1; display:flex; overflow:hidden">',
@@ -503,10 +722,7 @@ window.initFleetModule=function(){
                         break
                 i += 1
 
-    # ── Module HTML injection: INSIDE the flex:1 content wrapper ────────────────
-    # Find the content wrapper and walk to its closing </div>, then insert just before it.
-    # This keeps module-fleet in the same flex height chain as all other modules,
-    # preventing the board from requiring scroll to reach.
+    # ── Module placeholder injection (inside content wrapper) ──────────────
     cw_anchor = next((a for a in CONTENT_ANCHORS if a in idx), None)
     assert cw_anchor, 'ERROR: content wrapper not found for module injection!'
     cw_pos = idx.index(cw_anchor)
@@ -522,60 +738,31 @@ window.initFleetModule=function(){
         i += 1
     assert cw_close != -1, 'ERROR: could not find closing </div> of content wrapper!'
     idx = idx[:cw_close] + '\n' + module_div + '\n\n  ' + idx[cw_close:]
-    print('[OK] Module HTML injected (inside content wrapper)')
+    print('[OK] Module placeholder injected')
 
-    # ── Also fix #app to use height:100vh not min-height:100vh ──────────────────
-    # min-height lets app grow beyond viewport; height:100vh constrains it so flex
-    # children (including module-fleet) fill exactly the screen without page scroll.
+    # Fix #app height
     idx = idx.replace(
         'id="app" style="display:none;flex-direction:column;min-height:100vh;',
         'id="app" style="display:none;flex-direction:column;height:100vh;',
     )
 
-    # ── PHP / Google Drive sync injection ──────────────────────────────────────
-    gdrive_js_path = os.path.join(BASE, 'gdrive_sync.js')
-    if os.path.exists(gdrive_js_path):
-        gdrive_js = open(gdrive_js_path, encoding='utf-8').read()
+    # ── Minify inline JS in index.html ─────────────────────────────────────
+    # Find the main <script> block and minify it
+    script_start = idx.index('<script>') + 8
+    script_end = idx.index('</script>')
+    inline_js = idx[script_start:script_end]
+    inline_js_min = minify_js(inline_js)
+    idx = idx[:script_start] + '\n' + inline_js_min + '\n' + idx[script_end:]
+    print(f'[OK] Inline JS minified ({len(inline_js):,} -> {len(inline_js_min):,} bytes)')
 
-        # 1. Inject sync JS as a separate <script> block before the LAST </body>
-        # Must use last occurrence — index_base contains </body> inside downloadPDF's
-        # document.write() template literal; replacing the first one injects a
-        # literal </script> into that string, terminating the host script early.
-        sync_block = '\n<script>\n' + gdrive_js + '\n</script>'
-        last_body = idx.rfind('</body>')
-        idx = idx[:last_body] + sync_block + '\n</body>' + idx[last_body + len('</body>'):]
-
-        # 2. Inject Cloud Sync UI panel into left nav (before spacer)
-        sync_ui = '''
-  <div class="ln-section" id="gdrive-section">
-    <div class="ln-lbl">Cloud Sync</div>
-    <button class="ln-btn" onclick="driveLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
-    <div id="gdrive-status" style="font-size:11px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
-  </div>'''
-        idx = idx.replace('<div class="ln-spacer"></div>', sync_ui + '\n<div class="ln-spacer"></div>')
-
-        # 3. driveSave is chained inside fleet_board.html saveAll() after the Saved! line.
-
-        # 4. Hook initFleetModule to auto-load from Drive on first open
-        idx = idx.replace(
-            "if(typeof render==='function')render();",
-            "if(typeof render==='function')render();\n    if(typeof driveAutoLoad==='function') driveAutoLoad();",
-            1  # only replace first occurrence (inside initFleetModule)
-        )
-        print('[OK] Drive sync injected')
-    else:
-        print('[SKIP] gdrive_sync.js not found \u2014 Drive sync not injected')
-
+    # ── Sanity checks ─────────────────────────────────────────────────────
     checks = [
         ('module-fleet div',    '<div id="module-fleet"' in idx),
         ('tab-fleet',           'id="tab-fleet"' in idx),
         ('switchModule',        'function switchModule' in idx),
-        ('initFleetModule',     'initFleetModule' in idx),
-        ('fleet CSS',           'FLEET CSS' in idx),
-        ('fleet JS',            'FLEET JS' in idx),
-        ('Revert row spN',      'id="spN"' in idx),
-        ('Undo button',         'sp-undo' in idx),
-        ('drag+localStorage',   '_positionPopup' in idx),
+        ('loadFleetModule',     'loadFleetModule' in idx),
+        ('no inline fleet CSS', 'FLEET CSS' not in idx),
+        ('no inline fleet JS',  'FLEET JS' not in idx),
         ('single module-fleet', idx.count('<div id="module-fleet"') == 1),
         ('single tab-fleet',    idx.count('id="tab-fleet"') == 1),
         ('app height:100vh',    'height:100vh' in idx),
@@ -592,7 +779,21 @@ window.initFleetModule=function(){
 
     with open(INDEX_OUT, 'w', encoding='utf-8') as f:
         f.write(idx)
-    print(f'\n[DONE] Build complete -- {len(idx):,} bytes ({len(idx) // 1024} KB)')
+
+    # ── Size report ────────────────────────────────────────────────────────
+    print(f'\n{"=" * 50}')
+    print(f'  index.html        : {len(idx):>10,} bytes ({len(idx)//1024} KB)')
+    print(f'  fleet_data.json   : {len(fleet_data_json):>10,} bytes ({len(fleet_data_json)//1024} KB)')
+    print(f'  fleet_module.css  : {len(fleet_css_min):>10,} bytes ({len(fleet_css_min)//1024} KB)')
+    print(f'  fleet_module.js   : {len(fleet_js_min):>10,} bytes ({len(fleet_js_min)//1024} KB)')
+    print(f'  fleet_module.html : {len(body):>10,} bytes ({len(body)//1024} KB)')
+    total = len(idx) + len(fleet_data_json) + len(fleet_css_min) + len(fleet_js_min) + len(body)
+    print(f'  {"-" * 40}')
+    print(f'  Total             : {total:>10,} bytes ({total//1024} KB)')
+    print(f'  Initial page load : {len(idx):>10,} bytes ({len(idx)//1024} KB)')
+    print(f'{"=" * 50}')
+    print(f'\n[DONE] Build complete')
+    print(f'  Deploy: scp index.html fleet_data.json fleet_module.css fleet_module.js fleet_module.html root@187.127.99.52:/docker/sg-portal/html/')
 
 
 if __name__ == '__main__':

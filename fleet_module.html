@@ -1,0 +1,116 @@
+<!-- LEFT NAVIGATION PANEL -->
+<div id="left-nav">
+  <div class="ln-section" style="display:none">
+    <div class="ln-lbl">Month</div>
+    <select class="ln-sel" id="msel" onchange="onMonthChange(this.value)"></select>
+  </div>
+  <div class="ln-section">
+    <div class="ln-lbl">Fleet</div>
+    <button class="ln-btn active-scb" id="btn-scb" onclick="setFleet('SCB')">SeaCabbie</button>
+    <button class="ln-btn" id="btn-sgs" onclick="setFleet('SGS')">SG Shipping</button>
+    <button class="ln-btn" id="btn-all" onclick="setFleet('ALL')">Both Fleets</button>
+  </div>
+  <div class="ln-section">
+    <div class="ln-lbl">Tools</div>
+    <span id="fleet-edit-btn-wrap"><button class="ln-btn" id="btn-edit" onclick="toggleEdit()">✎ Edit Mode</button></span>
+    <button class="ln-btn save-btn" id="btn-save" onclick="saveAll()">✓ Save changes</button>
+    <button class="ln-btn export-btn" id="btn-exp" onclick="exportJSON()">↓ Export JSON</button>
+  </div>
+  <div class="ln-legend">
+    <div class="ln-lbl">Legend</div>
+    <div class="leg"><div class="leg-sq" style="background:#92D050"></div>Available</div>
+    <div class="leg"><div class="leg-sq" style="background:#FF0000"></div>Machinery Issues</div>
+    <div class="leg"><div class="leg-sq" style="background:#4472C4"></div>Structural Damage</div>
+    <div class="leg"><div class="leg-sq" style="background:#FF66FF"></div>Propeller Damage</div>
+    <div class="leg"><div class="leg-sq" style="background:#ED7D31"></div>Payment Delays</div>
+  </div>
+  <div class="ln-section">
+    <div class="ln-lbl">Analytics</div>
+    <button class="ln-btn" id="btn-an-scb" onclick="openAnalytics('SCB')">📊 Sea Cabbie</button>
+    <button class="ln-btn" id="btn-an-sgs" onclick="openAnalytics('SGS')">📊 SG Shipping</button>
+  </div>
+  
+  <div class="ln-section" id="gdrive-section">
+    <div class="ln-lbl">Cloud Sync</div>
+    <button class="ln-btn" onclick="driveLoad()" style="margin-bottom:4px">&#8595; Load from Drive</button>
+    <div id="gdrive-status" style="font-size:11px;color:#8892b8;margin-top:4px;min-height:14px;transition:opacity 1s"></div>
+  </div>
+<div class="ln-spacer"></div>
+  <div class="ln-paintinfo" id="pb-count"></div>
+</div>
+
+<div class="main-content">
+<div class="kpi-strip" id="kpis"></div>
+
+<div class="mbar">
+  <div style="position:relative;display:inline-block">
+    <button id="mtitle" onclick="toggleMonthPicker()" style="cursor:pointer;user-select:none;background:#1a2340;border:1px solid rgba(255,255,255,.15);color:#e8ecf8;border-radius:8px;padding:6px 14px;font-size:14px;font-weight:700;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:all .15s;outline:none" onmouseover="this.style.borderColor='rgba(255,255,255,.4)';this.style.background='#253055'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.background='#1a2340'">—
+      <svg width="10" height="6" viewBox="0 0 10 6" style="flex-shrink:0;transition:transform .2s" id="mtitle-arrow"><path d="M0 0l5 6 5-6z" fill="#8892b8"/></svg>
+    </button>
+    <span class="mmeta" id="mmeta"></span>
+    <div id="month-picker" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#1a2340;border:1px solid rgba(255,255,255,.18);border-radius:10px;z-index:500;min-width:120px;box-shadow:0 8px 32px rgba(0,0,0,.6);padding:6px 0;margin-top:0"></div>
+  </div>
+  <div class="daynav">
+    <button class="dnbtn" onclick="shiftDay(-1)">← Prev</button>
+    <span class="dayind" id="dayind">Day —</span>
+    <button class="dnbtn" onclick="shiftDay(1)">Next →</button>
+    <button class="dnbtn today" onclick="jumpToday()">▶ Today</button>
+  </div>
+</div>
+
+<div class="twrap"><table id="tbl"></table></div>
+
+<!-- FIXED SIDE PANEL — stays put, never floats -->
+<div id="side-panel">
+  <div class="sp-head">
+    <div class="sp-boat" id="sp-boat">—</div>
+    <div class="sp-meta" id="sp-meta">Click a cell to edit</div>
+  </div>
+  <div class="sp-body">
+    <div class="sp-idle" id="sp-idle">
+      <div class="sp-idle-icon">✎</div>
+      Click any cell in the grid to set its status
+    </div>
+    <div id="sp-options" style="display:none">
+      <div class="sp-lbl">Select status</div>
+      <div class="sp-row" id="spA" onclick="pickStatus('A')"><div class="sp-swatch" style="background:#92D050"></div>Available</div>
+      <div class="sp-row" id="spM" onclick="pickStatus('M')"><div class="sp-swatch" style="background:#FF0000"></div>Machinery Issues</div>
+      <div class="sp-row" id="spS" onclick="pickStatus('S')"><div class="sp-swatch" style="background:#4472C4"></div>Structural Damage</div>
+      <div class="sp-row" id="spP" onclick="pickStatus('P')"><div class="sp-swatch" style="background:#FF66FF"></div>Propeller Damage</div>
+      <div class="sp-row" id="spW" onclick="pickStatus('W')"><div class="sp-swatch" style="background:#ED7D31"></div>Payment Delays</div>
+      <div class="sp-row" id="spN" onclick="pickStatus('N')"><div class="sp-swatch" style="background:#e8eaee;border:1.5px solid #8892b8"></div>Revert (clear)</div>
+      <div class="sp-div"></div>
+      <div class="sp-reason">
+        <div class="sp-reason-lbl">Reason / note</div>
+        <textarea class="sp-input" id="sp-reason" rows="2" placeholder="e.g. Engine shaft bolt sheared" maxlength="120"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="sp-footer" id="sp-footer" style="display:none">
+    <button class="sp-apply" onclick="applyEdit()">✓ Apply colour</button>
+    <button class="sp-undo" onclick="undoLast()" id="sp-undo" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#c5cde8;border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:inherit;width:100%">Undo last</button>
+    <button class="sp-close" onclick="closePicker()">✕ Close</button>
+  </div>
+</div>
+
+</div><!-- /main-content -->
+
+<!-- ANALYTICS OVERLAY -->
+<div id="analytics-overlay">
+  <div class="an-header">
+    <span class="an-title" id="an-title">Fleet Analytics</span>
+    <span class="an-fleet" id="an-fleet-chip">—</span>
+    <button class="an-close" onclick="closeAnalytics()">✕ Close</button>
+  </div>
+  <div class="an-body" id="an-body"><!-- rendered by JS --></div>
+</div>
+
+
+<!-- TOOLTIP -->
+<div id="tip">
+  <div class="tt-b" id="tt-b"></div>
+  <div class="tt-d" id="tt-d"></div>
+  <div class="tt-s" id="tt-s"></div>
+  <div class="tt-r" id="tt-r"></div>
+  <div class="tt-h" id="tt-h">✎ Click to edit this cell</div>
+</div>

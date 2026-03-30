@@ -1,8 +1,9 @@
 # Credentials and secrets — never commit these
 Key List.md
 admin.html
-*.json
 service-account.json
+*credentials*.json
+*secret*.json
 
 # Python
 __pycache__/
