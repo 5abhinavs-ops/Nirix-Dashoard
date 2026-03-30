@@ -50,6 +50,9 @@ const ALLOWED_MIME = [
 
 function findOrCreateMonthFolder(Google\Service\Drive $drive, string $parentId): string
 {
+    if (!preg_match('/^[a-zA-Z0-9_\-]{10,80}$/', $parentId)) {
+        throw new \InvalidArgumentException('Invalid parentId format');
+    }
     $monthName = date('Y-m');
     $query = sprintf(
         "name = '%s' and '%s' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false",
@@ -101,7 +104,7 @@ try {
         jsonResponse(['ok' => false, 'error' => 'File must be jpeg, png, gif, or webp'], 400);
     }
 
-    if (@getimagesize($tmp) === false) {
+    if (getimagesize($tmp) === false) {
         jsonResponse(['ok' => false, 'error' => 'Not a valid image'], 400);
     }
 
@@ -120,7 +123,10 @@ try {
     $drive = new Google\Service\Drive($client);
 
     $targetFolder = FALLBACK_PHOTOS_FOLDER_ID;
-    if ($company !== '' && $boat !== '' && isset(BOAT_FOLDER_MAP[$company][$boat])) {
+    if ($company !== '' || $boat !== '') {
+        if (!isset(BOAT_FOLDER_MAP[$company][$boat])) {
+            jsonResponse(['ok' => false, 'error' => 'Unknown company or boat'], 400);
+        }
         $boatFolderId = BOAT_FOLDER_MAP[$company][$boat];
         $targetFolder = findOrCreateMonthFolder($drive, $boatFolderId);
     }
