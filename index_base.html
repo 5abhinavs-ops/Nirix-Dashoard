@@ -750,8 +750,8 @@ select option { background:#0D1F3C;color:#FFFFFF; }
           });
         }else{specRows=[];}
 
-        window._lastRefresh=new Date();
-        updateRefreshTs();
+        window._lastRefresh=Date.now();
+        updateFreshnessLabel();
         ['module-home','module-daily','module-runhrs','module-boatspecs','module-certs'].forEach(function(id){
           var el=document.getElementById(id);if(el)el.dataset.loaded='1';
         });
@@ -774,14 +774,13 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       }
     }
 
-    function updateRefreshTs(){
-      var el=document.getElementById('refresh-ts');if(!el||!window._lastRefresh)return;
-      var sec=Math.floor((Date.now()-window._lastRefresh.getTime())/1000);
-      if(sec<60)el.textContent='Just now';
-      else if(sec<3600)el.textContent=Math.floor(sec/60)+' min ago';
-      else el.textContent=Math.floor(sec/3600)+'h ago';
+    function updateFreshnessLabel(){
+      var el=document.getElementById('freshness-label');if(!el||window._lastRefresh==null)return;
+      var min=Math.floor((Date.now()-window._lastRefresh)/60000);
+      if(min<1)el.textContent='just now';
+      else el.textContent='Last updated: '+min+' min ago';
     }
-    setInterval(updateRefreshTs,60000);
+    setInterval(updateFreshnessLabel,60000);
 
     function renderAll(){
       if(activeModule==='home')renderHome();
@@ -1294,7 +1293,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         ${fleetCompanyTab('Sea Cabbie')}${fleetCompanyTab('SG Shipping')}
       </div>`;
 
-      html+=`<div style="overflow-x:auto">`;
+      html+=`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">`;
       html+=`<table style="border-collapse:collapse;font-size:14px;width:100%;min-width:${110+months.length*90}px">`;
 
       // ── Header row (once at top) ──
@@ -1326,7 +1325,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 
         // ── Row 1: Boat name ──
         html+=`<tr>`;
-        html+=`<td style="position:sticky;left:0;z-index:1;padding:10px 12px;border-right:1px solid #1E3A5F;border-top:2px solid #1A3A5F;border-bottom:none;background:#0A1628">
+        html+=`<td style="position:sticky;left:0;z-index:1;padding:10px 12px;border-right:1px solid #1E3A5F;border-top:2px solid #1A3A5F;border-bottom:none;background:${rowBg}">
           <div style="display:inline-flex;align-items:center;padding:5px 14px;background:#0D2040;border:1.5px solid #1E4A7A;border-radius:6px;box-shadow:0 0 8px rgba(13,100,160,0.25)">
             <span style="font-size:16px;font-weight:700;color:#FFFFFF;letter-spacing:0.04em;white-space:nowrap">${boat}</span>
           </div>
@@ -1343,7 +1342,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 
         // ── Row 2: Port Engine ──
         html+=`<tr>`;
-        html+=`<td style="position:sticky;left:0;z-index:1;padding:5px 12px 4px 18px;border-right:1px solid #1E3A5F;border-top:none;border-bottom:none;background:#0A1628">
+        html+=`<td style="position:sticky;left:0;z-index:1;padding:5px 12px 4px 18px;border-right:1px solid #1E3A5F;border-top:none;border-bottom:none;background:${rowBg}">
           <div style="display:inline-flex;align-items:center;padding:2px 10px;background:#071828;border:1px solid #1E3A5F;border-radius:4px">
             <span style="font-size:var(--fs-t6);font-weight:600;color:#8AA8C0;letter-spacing:0.06em;text-transform:uppercase">Port</span>
           </div>
@@ -1359,7 +1358,7 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         // ── Row 3: Stbd Engine ──
         const isLast = bi===boats.length-1;
         html+=`<tr>`;
-        html+=`<td style="position:sticky;left:0;z-index:1;padding:4px 12px 8px 18px;border-right:1px solid #1E3A5F;border-top:none;border-bottom:${isLast?'none':'1px solid #1A2F4A'};background:#0A1628">
+        html+=`<td style="position:sticky;left:0;z-index:1;padding:4px 12px 8px 18px;border-right:1px solid #1E3A5F;border-top:none;border-bottom:${isLast?'none':'1px solid #1A2F4A'};background:${rowBg}">
           <div style="display:inline-flex;align-items:center;padding:2px 10px;background:#071828;border:1px solid #1E3A5F;border-radius:4px">
             <span style="font-size:var(--fs-t6);font-weight:600;color:#8AA8C0;letter-spacing:0.06em;text-transform:uppercase">Stbd</span>
           </div>
@@ -1483,14 +1482,14 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       const portMap=monthlyHrsMap(boat,'Port',runhrsMonth,runhrsYear);
       const stbdMap=monthlyHrsMap(boat,'Stbd',runhrsMonth,runhrsYear);
       let thead='<tr>';
-      thead+=`<th style="text-align:left;width:160px;min-width:160px;background:#0D1F3C;color:#FFFFFF;font-size:13px;font-weight:500;padding:5px 10px;border:1px solid #1E3A5F"></th>`;
+      thead+=`<th style="position:sticky;left:0;z-index:2;text-align:left;width:160px;min-width:160px;background:#0D1F3C;color:#FFFFFF;font-size:13px;font-weight:500;padding:5px 10px;border:1px solid #1E3A5F"></th>`;
       for(let d=1;d<=dim;d++){
         const isToday=isThisMo&&d===todayD;const isFuture=isThisMo&&d>todayD;
         thead+=`<th style="text-align:center;min-width:38px;background:${isToday?'#0D2A3A':'#0D1F3C'};color:${isFuture?'#3A4A60':'#FFFFFF'};font-size:13px;font-weight:${isToday?'700':'500'};padding:5px 6px;border:1px solid #1E3A5F">${d}</th>`;
       }
       thead+='</tr>';
       function mkrow(label,getter,isDiff){
-        let row=`<td style="background:#0D1F3C;color:#FFFFFF;font-size:var(--fs-t5);text-align:left;padding:6px 10px;border:1px solid #1A2F4A">${label}</td>`;
+        let row=`<td style="position:sticky;left:0;z-index:1;background:#0D1F3C;color:#FFFFFF;font-size:var(--fs-t5);text-align:left;padding:6px 10px;border:1px solid #1A2F4A">${label}</td>`;
         let prev=null;
         for(let d=1;d<=dim;d++){
           const isToday=isThisMo&&d===todayD;const isFuture=isThisMo&&d>todayD;
@@ -1523,7 +1522,9 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           <div style="font-size:22px;font-weight:700;color:#1A9A6A">—</div></div></div>`;
       return `<div style="margin-top:6px">
         <div style="padding:10px 14px;background:#071828;border-bottom:1px solid #1E3A5F"><div style="font-size:17px;font-weight:700;color:#FFFFFF">${boat}</div></div>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
         <table style="width:100%;border-collapse:collapse;font-size:14px"><thead>${thead}</thead><tbody>${tbody}</tbody></table>
+        </div>
         ${footer}</div>`;
     }
 
@@ -3117,8 +3118,8 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       </div>
     </div>
 
-    <div id="refresh-ts" style="font-size:13px;color:#5A7A9A;flex-shrink:0"></div>
-
+    <div style="display:flex;align-items:center;gap:12px;margin-left:auto;flex-shrink:0">
+    <span id="freshness-label" style="font-size:var(--fs-t6);color:#5A7A9A;text-align:right;white-space:nowrap"></span>
     <!-- Nirix logo + brand box -->
     <div style="display:flex;align-items:center;gap:10px;padding:6px 14px;background:#0A1E30;border:1.5px solid #0D6A7A;border-radius:8px;box-shadow:0 0 12px rgba(13,100,130,0.3);flex-shrink:0">
       <div id="logo-nirix-wrap">
@@ -3141,44 +3142,45 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
         <div id="header-date" style="font-size:var(--fs-t6);color:#8AA8C0;letter-spacing:0.06em"></div>
       </div>
     </div>
+    </div>
 
   </div>
 
 
   <div id="module-nav" style="background:#0D1F3C;border-bottom:1px solid #1E3A5F;padding:0 18px;display:flex;align-items:flex-end;gap:6px;flex-shrink:0">
-    <div id="tab-home" onclick="switchModule('home')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #0D6A7A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;cursor:pointer;opacity:1">
-      <span class="stab-icon" style="font-size:16px;line-height:1">&#127968;</span>
+    <div id="tab-home" onclick="switchModule('home')" style="padding:8px 14px 0;margin-top:5px;border:1px solid #0D6A7A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;align-items:center;cursor:pointer;opacity:1">
+      <i class="ph-bold ph-house stab-icon" style="font-size:20px;line-height:1" aria-hidden="true"></i>
       <div style="font-size:var(--fs-t5);font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Home</div>
     </div>
-    <div id="tab-daily" onclick="switchModule('daily')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1E3A5F;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
-      <span class="stab-icon" style="font-size:16px;line-height:1;text-align:center;display:block">&#128203;</span>
+    <div id="tab-daily" onclick="switchModule('daily')" style="padding:8px 14px 0;margin-top:5px;border:1px solid #1E3A5F;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
+      <i class="ph-bold ph-clipboard-text stab-icon" style="font-size:20px;line-height:1;text-align:center;display:block" aria-hidden="true"></i>
       <div style="font-size:20px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Daily Reports</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="ttab on" onclick="event.stopPropagation();switchModule('daily');switchDailyView('daily',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Daily view</div>
-        <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('monthly',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Monthly view</div>
-        <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('fuel',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Fuel</div>
+        <div class="ttab on" onclick="event.stopPropagation();switchModule('daily');switchDailyView('daily',this)" style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Daily view</div>
+        <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('monthly',this)" style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Monthly view</div>
+        <div class="ttab" onclick="event.stopPropagation();switchModule('daily');switchDailyView('fuel',this)" style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Fuel</div>
       </div>
     </div>
-    <div id="tab-runhrs" onclick="switchModule('runhrs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #0D8A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
-      <span class="stab-icon" style="font-size:16px;line-height:1;text-align:center;display:block">&#9881;&#65039;</span>
+    <div id="tab-runhrs" onclick="switchModule('runhrs')" style="padding:8px 14px 0;margin-top:5px;border:1px solid #0D8A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
+      <i class="ph-bold ph-engine stab-icon" style="font-size:20px;line-height:1;text-align:center;display:block" aria-hidden="true"></i>
       <div style="font-size:20px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Engine Run-hrs Records</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="stab on" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('fleet',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Fleet monthly overview</div>
-        <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('runhrs',this)" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Monthly running hours</div>
+        <div class="stab on" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('fleet',this)" style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Fleet monthly overview</div>
+        <div class="stab" onclick="event.stopPropagation();switchModule('runhrs');switchRunhrsView('runhrs',this)" style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0">Monthly running hours</div>
       </div>
     </div>
-    <div id="tab-boatspecs" onclick="switchModule('boatspecs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #1A6A3A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
-      <span class="stab-icon" style="font-size:16px;line-height:1;text-align:center;display:block">&#128674;</span>
+    <div id="tab-boatspecs" onclick="switchModule('boatspecs')" style="padding:8px 14px 0;margin-top:5px;border:1px solid #1A6A3A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
+      <i class="ph-bold ph-boat stab-icon" style="font-size:20px;line-height:1;text-align:center;display:block" aria-hidden="true"></i>
       <div style="font-size:20px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Boat Tech. Specs</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div class="btab on" style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0;color:#FFFFFF;font-weight:500;background:#0D2A1A;border-bottom:2px solid #1A9A5A">All vessels</div>
+        <div class="btab on" style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0;color:#FFFFFF;font-weight:500;background:#0D2A1A;border-bottom:2px solid #1A9A5A">All vessels</div>
       </div>
     </div>
-    <div id="tab-certs" onclick="switchModule('certs')" style="padding:5px 10px 0;margin-top:5px;border:1px solid #2A6A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
-      <span class="stab-icon" style="font-size:16px;line-height:1;text-align:center;display:block">&#128196;</span>
+    <div id="tab-certs" onclick="switchModule('certs')" style="padding:8px 14px 0;margin-top:5px;border:1px solid #2A6A9A;border-bottom:none;border-radius:6px 6px 0 0;display:flex;flex-direction:column;cursor:pointer;opacity:0.55">
+      <i class="ph-bold ph-certificate stab-icon" style="font-size:20px;line-height:1;text-align:center;display:block" aria-hidden="true"></i>
       <div style="font-size:20px;font-weight:700;color:#FFFFFF;padding:3px 0;text-align:center">Certification</div>
       <div style="display:flex;gap:2px;margin-top:3px">
-        <div style="padding:5px 12px;font-size:var(--fs-t5);border-radius:4px 4px 0 0;color:#5AB8E8;font-weight:500;background:#081828;border-bottom:2px solid #3A8FBF">Compliance</div>
+        <div style="padding:8px 14px;font-size:var(--fs-t5);border-radius:4px 4px 0 0;color:#5AB8E8;font-weight:500;background:#081828;border-bottom:2px solid #3A8FBF">Compliance</div>
       </div>
     </div>
     
