@@ -21,7 +21,7 @@ try {
     $client = getGoogleClient();
     $service = new Google\Service\Sheets($client);
 
-    $range = $sheet . '!A:ZZ';
+    $range = $sheet;
     $response = $service->spreadsheets_values->get(SPREADSHEET_ID, $range);
     $values = $response->getValues() ?? [];
 
