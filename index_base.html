@@ -711,6 +711,7 @@ select option { background:#0D1F3C;color:#FFFFFF; }
       const base = BOAT_SPECS[boat] || {};
       const ov = _boatspecsOverrides[boat] || {};
       const o = Object.assign({}, base);
+      o['company'] = BOAT_COMPANY[boat] || '';
       Object.keys(ov).forEach(function (k) {
         if (ov[k] != null && ov[k] !== '') o[k] = ov[k];
       });
@@ -1236,7 +1237,17 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
       var _vsp=document.getElementById('v-specs');if(_vsp)_vsp.style.display=view==='specs'?'block':'none';
       renderAll();
     }
-    const BOAT_SPECS = {"SG Galaxy":{"company":"SG Shipping","SC Number":"SC 4732I","MMSI Number":"529125000","Hull":"Fiberglass","Breadth":"4.3","Depth":"2.2","Class":"IS Class","Flag":"Betio (Kiribati)","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"PT","AIS":"","GPS":"","Engine Model":"Mitsubishi S6M3","Gearbox Model":"Nico MGN46E","Gearbox Ratio":"2.58:1","Generator Model":"Bonaro","Generator Engine":"Nissan TD25","Propeller Size":"28\" ×35\"","Shaft Size":"2.5\"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Brave":{"company":"SG Shipping","SC Number":"SC 4242D","MMSI Number":"563023740","Hull":"Aluminium","Breadth":"5.5","Depth":"2.69","Class":"RINA","Flag":"Singapore","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"NSR - NAB1000","GPS":"Samyung N430","Engine Model":"CUMMINS KTA 19M3","Gearbox Model":"ZF 2000 A","Gearbox Ratio":"2.04:1","Generator Model":"Cummins","Generator Engine":"KUBOTO","Propeller Size":"1230mm x 1168mm DIA","Shaft Size":"82.55mm","Rudder Size":"","Steering Type":"Hydraulic"},"SG Fortune":{"company":"SG Shipping","SC Number":"SC 3822B","MMSI Number":"563031250","Hull":"Aluminium","Breadth":"4.8","Depth":"2.2","Class":"BV","Flag":"Singapore","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"PT","AIS":"","GPS":"","Engine Model":"Cummins 6CTA 8.3 M3","Gearbox Model":"Twin Disc 5075-A","Gearbox Ratio":"2.05:1","Generator Model":"Yanmar 3TNE 82A-DG","Generator Engine":"Kohler","Propeller Size":"Drawing","Shaft Size":"2 1/4\"","Rudder Size":"57.15mm","Steering Type":"Hydraulic"},"SG Justice":{"company":"SG Shipping","SC Number":"SC 4222Z","MMSI Number":"563012010","Hull":"Aluminium","Breadth":"5.5","Depth":"2.05","Class":"RINA","Flag":"Singapore","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"NSR - NAB1000","GPS":"GARMIN GPS128","Engine Model":"Caterpillar 3406C","Gearbox Model":"ZF360","Gearbox Ratio":"2:48:1","Generator Model":"Yanmar","Generator Engine":"Kohler 27EF0ZD","Propeller Size":"36\"","Shaft Size":"80mm","Rudder Size":"","Steering Type":"Hydraulic"},"SG Patience":{"company":"SG Shipping","SC Number":"SC 4235A","MMSI Number":"563012030","Hull":"Aluminium","Breadth":"5.5","Depth":"2.05","Class":"RINA","Flag":"Singapore","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"NSR - NAB1000","GPS":"GARMIN GPS128","Engine Model":"Caterpillar 3406C","Gearbox Model":"ZF360","Gearbox Ratio":"2:48:1","Generator Model":"Yanmar","Generator Engine":"Kohler 27EF0ZD","Propeller Size":"36\"","Shaft Size":"80mm","Rudder Size":"","Steering Type":"Hydraulic"},"SG Loyalty":{"company":"SG Shipping","SC Number":"SR 3879B","MMSI Number":"563023720","Hull":"Aluminium","Breadth":"5.5","Depth":"2.05","Class":"RINA","Flag":"Singapore","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"NSR - NAB1000","GPS":"GARMIN GPS128","Engine Model":"Caterpillar 3406C","Gearbox Model":"ZF360","Gearbox Ratio":"2:48:1","Generator Model":"Yanmar","Generator Engine":"Kohler 27EF0ZD (27KW & 32KW)","Propeller Size":"36\"","Shaft Size":"80mm","Rudder Size":"","Steering Type":"Hydraulic"},"SG Generous":{"company":"SG Shipping","SC Number":"SC 4221A","MMSI Number":"563023710","Hull":"Aluminium","Breadth":"5.5","Depth":"2.05","Class":"RINA","Flag":"Singapore","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"NSR - NAB1000","GPS":"GARMIN GPS128","Engine Model":"Caterpillar 3406C","Gearbox Model":"ZF360","Gearbox Ratio":"2:48:1","Generator Model":"Yanmar","Generator Engine":"Kohler 27EF0ZD","Propeller Size":"36\"","Shaft Size":"80mm","Rudder Size":"","Steering Type":"Hydraulic"},"SG Integrity":{"company":"SG Shipping","SC Number":"SC 4795G","MMSI Number":"563037140","Hull":"Aluminium","Breadth":"4.5","Depth":"2.3","Class":"ABS","Flag":"Singapore","Passenger Capacity":"9","Crew Capacity":"3","Mooring Buoy":"PT","AIS":"NSR - NAB-1000","GPS":"Furuno","Engine Model":"Cummins NTA 855-M","Gearbox Model":"Twin Disc MG 5096-A & ZF 325-1A","Gearbox Ratio":"2.5:1","Generator Model":"","Generator Engine":"Weichai WP2.5CD22E1 x2","Propeller Size":"35\"x38\"","Shaft Size":"3\"","Rudder Size":"","Steering Type":""},"SG Dhalia":{"company":"SG Shipping","SC Number":"SC 4760D","MMSI Number":"312479000","Hull":"Wood","Breadth":"5.6","Depth":"2.2","Class":"SI Class","Flag":"Belize","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"ECHOL TECH HME A2000","GPS":"FURUNO GP-39","Engine Model":"Cummins NTA 855M","Gearbox Model":"Advance 300","Gearbox Ratio":"3:01:1","Generator Model":"CF 230","Generator Engine":"CHII-FA / DONG-FENG","Propeller Size":"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Sunflower":{"company":"SG Shipping","SC Number":"SC4601B","MMSI Number":"563025840","Hull":"Wood","Breadth":"5.6","Depth":"2.2","Class":"SI Class","Flag":"Belize","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"NIL","GPS":"FURUNO GP-39","Engine Model":"Cummins NTA 855M","Gearbox Model":"Advance 300","Gearbox Ratio":"3:01:1","Generator Model":"CF 230","Generator Engine":"CHII-FA / DONG-FENG","Propeller Size":"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Jasmine":{"company":"SG Shipping","SC Number":"SC 4639Z","MMSI Number":"312188000","Hull":"Wood","Breadth":"6.2","Depth":"2.2","Class":"SI Class","Flag":"Belize","Passenger Capacity":"12","Crew Capacity":"3","Mooring Buoy":"","AIS":"EM-TRAK B300 CLASS B","GPS":"FURUNO GP-39","Engine Model":"Cummins NTA 855M","Gearbox Model":"Advance 300","Gearbox Ratio":"3:01:1","Generator Model":"CF 230 R","Generator Engine":"CHII-FA / DONG-FENG","Propeller Size":"","Shaft Size":"","Rudder Size":"","Steering Type":"S.A.M Tech"},"SG Marigold":{"company":"SG Shipping","SC Number":"SC 4585G","MMSI Number":"563025790","Hull":"Wood","Breadth":"5.6","Depth":"2.2","Class":"SI Class","Flag":"Belize","Passenger Capacity":"10","Crew Capacity":"3","Mooring Buoy":"","AIS":"NAUTILUS N6B AIS","GPS":"FURUNO GP-39","Engine Model":"Cummins NTA 855M","Gearbox Model":"Advance 300","Gearbox Ratio":"3:01:1","Generator Model":"CF 230","Generator Engine":"CHII-FA / DONG-FENG","Propeller Size":"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Ekam":{"company":"Sea Cabbie","SC Number":"SC 4947Z","MMSI Number":"563069940","Hull":"Fiberglass","Breadth":"3.56","Depth":"2.13","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"MS 14","AIS":"NSR - NAB-1000","GPS":"NAB-1000","Engine Model":"D7C-B TA","Gearbox Model":"ZF 280-1A","Gearbox Ratio":"1.769:1","Generator Model":"NA","Generator Engine":"","Propeller Size":"25\" x 27\" x 4B x 0.7 BAR","Shaft Size":"Drawing","Rudder Size":"Drawing","Steering Type":"Hydraulic"},"SG Naav":{"company":"Sea Cabbie","SC Number":"SC 5151B","MMSI Number":"563084120","Hull":"Fiberglass","Breadth":"3.6","Depth":"2.1","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"","AIS":"NSR - NAB-1000","GPS":"NAB-1000","Engine Model":"Volvo D7C TA","Gearbox Model":"ZF 305-2A","Gearbox Ratio":"1.514:1","Generator Model":"NA","Generator Engine":"","Propeller Size":"Drawing","Shaft Size":"Drawing","Rudder Size":"Drawing","Steering Type":"Hydraulic"},"SG Dve":{"company":"Sea Cabbie","SC Number":"SC 4954B","MMSI Number":"563070430","Hull":"Fiberglass","Breadth":"3.56","Depth":"2.13","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"MS 10","AIS":"iCOM MA 510 TR","GPS":"","Engine Model":"WD10C326-21","Gearbox Model":"ZF 305-2A","Gearbox Ratio":"1.514:1","Generator Model":"NA","Generator Engine":"","Propeller Size":"26 x 27.5\" x 4B x 0.65 BAR","Shaft Size":"2.25\"","Rudder Size":"Drawing","Steering Type":"Hydraulic"},"KM Golf":{"company":"Sea Cabbie","SC Number":"SC 9009G","MMSI Number":"563064060","Hull":"Fiberglass","Breadth":"3.8","Depth":"1.9","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"WCP 43","AIS":"","GPS":"","Engine Model":"WD10C326-21","Gearbox Model":"DMT140H","Gearbox Ratio":"1.97:1","Generator Model":"CCE.112.1-W2","Generator Engine":"","Propeller Size":"28x33\"","Shaft Size":"2.5\"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Panch":{"company":"Sea Cabbie","SC Number":"SC 4916Z","MMSI Number":"563035260","Hull":"Fiberglass","Breadth":"3.8","Depth":"1.9","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"MS 10","AIS":"NSR - NAB-1000","GPS":"NAB-1000","Engine Model":"WD10C326-21","Gearbox Model":"DMT140H","Gearbox Ratio":"1.97:1","Generator Model":"CCE.112.1-W2","Generator Engine":"","Propeller Size":"28x33\"","Shaft Size":"2.5\"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Chatur":{"company":"Sea Cabbie","SC Number":"SC 4991G","MMSI Number":"563040481","Hull":"Fiberglass","Breadth":"3.8","Depth":"1.9","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"MS 14","AIS":"","GPS":"","Engine Model":"WD10C326-21","Gearbox Model":"DMT140H","Gearbox Ratio":"1.97:1","Generator Model":"CCE.112.1-W2","Generator Engine":"","Propeller Size":"28x33\"","Shaft Size":"2.5\"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Sapta":{"company":"Sea Cabbie","SC Number":"SC4406E","MMSI Number":"563040546","Hull":"Fiberglass","Breadth":"3.8","Depth":"1.8","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"Resolve","AIS":"NSR - NAB-1000","GPS":"","Engine Model":"Mitsubishi 6D22","Gearbox Model":"DMT140H","Gearbox Ratio":"1.97:1","Generator Model":"NA","Generator Engine":"","Propeller Size":"23x45\"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Ashta":{"company":"Sea Cabbie","SC Number":"SC 4438I","MMSI Number":"563040545","Hull":"Fiberglass","Breadth":"3.8","Depth":"1.8","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"Resolve","AIS":"","GPS":"","Engine Model":"Mitsubishi 6D22","Gearbox Model":"DMT140H","Gearbox Ratio":"1.97:1","Generator Model":"NA","Generator Engine":"","Propeller Size":"23x45\"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"},"SG Trinee":{"company":"Sea Cabbie","SC Number":"SC 4950Z","MMSI Number":"563070160","Hull":"Fiberglass","Breadth":"3.56","Depth":"2.13","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"WC 31","AIS":"NSR - NAB-1000","GPS":"NAB-1000","Engine Model":"MD 196 TI","Gearbox Model":"ZF 305-2A","Gearbox Ratio":"1.514:1","Generator Model":"NA","Generator Engine":"","Propeller Size":"Drawing","Shaft Size":"Drawing","Rudder Size":"Drawing","Steering Type":"Hydraulic"},"Vayu 1":{"company":"Sea Cabbie","SC Number":"SC 5144Z","MMSI Number":"563083640","Hull":"Fiberglass","Breadth":"4.0","Depth":"1.1","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"","AIS":"","GPS":"","Engine Model":"Cummins WLA855-M450","Gearbox Model":"DMT 150H","Gearbox Ratio":"2.51:1","Generator Model":"NA","Generator Engine":"NA","Propeller Size":"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"},"Vayu 2":{"company":"Sea Cabbie","SC Number":"SC 5145H","MMSI Number":"563083650","Hull":"Fiberglass","Breadth":"4.0","Depth":"1.1","Class":"NA","Flag":"NA","Passenger Capacity":"12","Crew Capacity":"2","Mooring Buoy":"","AIS":"","GPS":"","Engine Model":"Cummins WLA855-M450","Gearbox Model":"DMT 150H","Gearbox Ratio":"2.51:1","Generator Model":"NA","Generator Engine":"NA","Propeller Size":"","Shaft Size":"","Rudder Size":"","Steering Type":"Hydraulic"}};
+    const BOAT_SPECS = {};
+    const BOAT_COMPANY = {
+      'SG Galaxy':'SG Shipping','SG Brave':'SG Shipping','SG Fortune':'SG Shipping',
+      'SG Justice':'SG Shipping','SG Patience':'SG Shipping','SG Loyalty':'SG Shipping',
+      'SG Generous':'SG Shipping','SG Integrity':'SG Shipping','SG Dhalia':'SG Shipping',
+      'SG Sunflower':'SG Shipping','SG Jasmine':'SG Shipping','SG Marigold':'SG Shipping',
+      'SG Ekam':'Sea Cabbie','SG Naav':'Sea Cabbie','SG Dve':'Sea Cabbie',
+      'KM Golf':'Sea Cabbie','SG Panch':'Sea Cabbie','SG Chatur':'Sea Cabbie',
+      'SG Sapta':'Sea Cabbie','SG Ashta':'Sea Cabbie','SG Trinee':'Sea Cabbie',
+      'Vayu 1':'Sea Cabbie','Vayu 2':'Sea Cabbie'
+    };
     const BS_SG = ['SG Galaxy','SG Brave','SG Fortune','SG Justice','SG Patience','SG Loyalty','SG Generous','SG Integrity','SG Dhalia','SG Sunflower','SG Jasmine','SG Marigold'];
     const BS_SC = ['SG Ekam','SG Naav','SG Dve','KM Golf','SG Panch','SG Chatur','SG Sapta','SG Ashta','SG Trinee','Vayu 1','Vayu 2'];
     let bsSelected = 'SG Galaxy';
@@ -1550,10 +1561,8 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
 
 
     const BOAT_SPECS_URL = '/api/boat-specs.php';
-    let _bsLoaded = false;
 
     async function loadBoatSpecs(){
-      if (_bsLoaded) return;
       try {
         const res = await fetch(BOAT_SPECS_URL);
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1562,45 +1571,24 @@ ${body.replace(/background:#[0-9A-Fa-f]{3,8}/g,'background:#fff').replace(/color
           console.warn('Boat specs API error:', data.error || 'unknown');
           return;
         }
-        // PHP API returns { ok, data }; legacy flat boat map still supported
         const specsMap = (data && data.ok && data.data && typeof data.data === 'object')
           ? data.data
           : data;
         if (specsMap && typeof specsMap === 'object' && !Array.isArray(specsMap)) {
-          // Normalise boat name keys from PHP (sheet uses 'Galaxy', JS expects 'SG Galaxy' etc)
-          var KEY_MAP = {'Galaxy':'SG Galaxy','Vayu1':'Vayu 1','Vayu2':'Vayu 2'};
-          // Fields that can ONLY come from the sheet (not in hardcoded data)
-          var SHEET_ONLY = ['LOA','Draft','GT','Year Built','Gearbox Serial Number','Year of Built'];
-          Object.keys(specsMap).forEach(function(rawBoat){
-            var boat = KEY_MAP[rawBoat] || rawBoat;
-            if(!BOAT_SPECS[boat]) BOAT_SPECS[boat] = {};
-            var sheetBoat = specsMap[rawBoat];
-            Object.keys(sheetBoat).forEach(function(k){
-              var val = sheetBoat[k];
-              if(val === null || val === '' || val === undefined) return;
-              // Skip the concatenated Hull SC Number field - hull is already in hardcoded data
-              if(k === 'Hull SC Number') return;
-              // Strip trailing unit suffixes from dimension fields so JS formatters work correctly
-              if(['LOA','Breadth','Depth','Draft'].indexOf(k) !== -1) {
-                val = String(val).replace(/[a-zA-Z]+$/, '').trim();
-                if(val === '') return;
-              }
-              // Sheet-only fields: always apply (hardcoded has no LOA/Draft/GT etc)
-              if(SHEET_ONLY.indexOf(k) !== -1) {
-                BOAT_SPECS[boat][k] = val; return;
-              }
-              // All other fields: only apply if hardcoded value is absent or empty
-              if(!BOAT_SPECS[boat][k] || BOAT_SPECS[boat][k] === '') {
-                BOAT_SPECS[boat][k] = val;
-              }
+          Object.keys(specsMap).forEach(function(boat){
+            if (!BOAT_SPECS[boat]) BOAT_SPECS[boat] = {};
+            Object.keys(specsMap[boat]).forEach(function(k){
+              if (specsMap[boat][k] !== '' && specsMap[boat][k] !== null)
+                BOAT_SPECS[boat][k] = specsMap[boat][k];
             });
           });
-          _bsLoaded = true;
         }
       } catch(e) {
-        console.warn('Boat specs fetch failed, using cached data:', e.message);
+        console.warn('Boat specs fetch failed:', e.message);
       }
     }
+
+
 
     async function renderBoatSpecs(){
       const wrap=document.getElementById('v-boatspecs');
