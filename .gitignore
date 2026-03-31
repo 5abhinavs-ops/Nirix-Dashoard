@@ -12,3 +12,4 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+php-scripts/drive_folder_ids.txt
