@@ -718,24 +718,61 @@ select option { background:#0D1F3C;color:#FFFFFF; }
     }
 
     async function loadData(){
+      // ── LOADING STATE ──
+      ['module-home','module-daily','module-runhrs','module-boatspecs','module-certs'].forEach(function(id){
+        var el=document.getElementById(id);
+        if(el&&!el.dataset.loaded){
+          el.innerHTML='<div class="loading-pulse">Loading data\u2026</div>';
+        }
+      });
+
+      // ── FETCH + PARSE (isolated try/catch) ──
       try{
-        ['module-home','module-daily','module-runhrs','module-boatspecs','module-certs'].forEach(function(id){
-          var el=document.getElementById(id);
-          if(el&&!el.dataset.loaded){
-            el.innerHTML='<div class="loading-pulse">Loading data\u2026</div>';
-          }
-        });
-        const [r1,r2]=await Promise.all([fetch(SHEET_URL),fetch(SPECS_URL)]);
-        const [j1,j2]=await Promise.all([r1.json(),r2.json()]);
-        if(j1.values&&j1.values.length>=2){const h=j1.values[0];allRows=j1.values.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k]=row[i]||'');return o;});}else{allRows=[];}
-        if(j2.values&&j2.values.length>=2){const h=j2.values[0];specRows=j2.values.slice(1).map(row=>{const o={};h.forEach((k,i)=>o[k]=row[i]||'');return o;});}else{specRows=[];}
+        var results=await Promise.allSettled([
+          fetch(SHEET_URL).then(function(r){return r.json();}),
+          fetch(SPECS_URL).then(function(r){return r.json();})
+        ]);
+        var j1=results[0].status==='fulfilled'?results[0].value:{};
+        var j2=results[1].status==='fulfilled'?results[1].value:{};
+        if(results[0].status==='rejected')console.error('[nirix] Sheet1 fetch failed',results[0].reason);
+        if(results[1].status==='rejected')console.error('[nirix] EngineSpecs fetch failed',results[1].reason);
+
+        if(j1.values&&j1.values.length>=2){
+          var h=j1.values[0];
+          allRows=j1.values.slice(1).map(function(row){
+            var o={};h.forEach(function(k,i){o[k]=row[i]||'';});return o;
+          });
+        }else{allRows=[];}
+
+        if(j2.values&&j2.values.length>=2){
+          var h2=j2.values[0];
+          specRows=j2.values.slice(1).map(function(row){
+            var o={};h2.forEach(function(k,i){o[k]=row[i]||'';});return o;
+          });
+        }else{specRows=[];}
+
         window._lastRefresh=new Date();
         updateRefreshTs();
         ['module-home','module-daily','module-runhrs','module-boatspecs','module-certs'].forEach(function(id){
           var el=document.getElementById(id);if(el)el.dataset.loaded='1';
         });
+      }catch(e){
+        console.error('[nirix] Data fetch failed',e);
+        ['module-home','module-daily','module-runhrs','module-boatspecs','module-certs'].forEach(function(id){
+          var el=document.getElementById(id);
+          if(el)el.innerHTML='<div style="padding:32px;text-align:center;color:#E05A5A;font-size:14px">\u26a0 Could not load data. <span onclick="loadData()" style="color:#5AB8E8;cursor:pointer;text-decoration:underline">Retry</span></div>';
+        });
+        return;
+      }
+
+      // ── RENDER (separate try/catch) ──
+      try{
         renderAll();
-      }catch(e){console.error('Sheets fetch failed',e);}
+      }catch(e){
+        console.error('[nirix] Render failed',e);
+        var el=document.getElementById('module-'+activeModule);
+        if(el)el.innerHTML='<div style="padding:32px;text-align:center;color:#E05A5A;font-size:14px">\u26a0 Display error. <span onclick="renderAll()" style="color:#5AB8E8;cursor:pointer;text-decoration:underline">Retry</span></div>';
+      }
     }
 
     function updateRefreshTs(){
